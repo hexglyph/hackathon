@@ -1,24 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { AzureOpenAI } from "openai"
-import { createHash } from "crypto"
-
-// Configuração do cliente Azure OpenAI
-const azureOpenAI = new AzureOpenAI({
-    endpoint: "https://ia-niass-east2.openai.azure.com",
-    apiKey: process.env.AZURE_OPENAI_API_KEY || "",
-    apiVersion: "2024-12-01-preview",
-})
-
-// Função para gerar uma chave de cache baseada na consulta
-function generateCacheKey(text: string): string {
-    return createHash("sha256").update(text).digest("hex").substring(0, 32)
-}
+import { generateText } from "ai"
+import { azureOpenAI, models, logUsage } from "@/lib/ai-sdk"
 
 // Função para consultar o vector store
 async function queryVectorStore(query: string) {
     try {
         const options = {
-            model: "4o-mini", // Substitua pelo modelo que você está usando
+            model: "4o-mini",
             name: "PortalPrefeitura",
             instructions: `Você é um assistente especializado em encontrar serviços da Prefeitura de São Paulo.
             Retorne os dados completos dos serviços relevantes em formato JSON, incluindo nome, descrição, resumo, link e outros campos disponíveis.
@@ -169,9 +157,39 @@ function formatServiceToMarkdown(service: any): string {
     return markdown
 }
 
-// Atualizar a API de busca para traduzir os resultados quando necessário
+// Função para traduzir texto usando o AI SDK
+async function translateText(text: string, targetLanguage: string): Promise<string> {
+    try {
+        // Determinar o sistema prompt baseado no idioma alvo
+        const systemPrompt = `Você é um tradutor especializado. Traduza o seguinte texto do português para o ${targetLanguage === "en" ? "inglês" : targetLanguage === "es" ? "espanhol" : targetLanguage
+            }. 
+    Mantenha todas as formatações Markdown, links e estrutura original. 
+    Não traduza nomes próprios, URLs ou códigos. 
+    Mantenha os marcadores especiais como [SOLICITAR_NORMAL] e [SOLICITAR_ANONIMO].`
 
-// 1. Modificar a função POST para receber o parâmetro de idioma
+        // Usar o AI SDK para traduzir o texto
+        const {
+            text: translatedText,
+            usage,
+            providerMetadata,
+        } = await generateText({
+            model: models.translator,
+            system: systemPrompt,
+            prompt: text,
+            temperature: 0.3,
+        })
+
+        // Registrar informações de uso e cache
+        logUsage(usage, providerMetadata)
+
+        return translatedText
+    } catch (error) {
+        console.error("Erro ao traduzir texto:", error)
+        return text // Em caso de erro, retornar o texto original
+    }
+}
+
+// Atualizar a API de busca para usar a função de tradução diretamente
 export async function POST(request: NextRequest) {
     try {
         const { query, language = "pt" } = await request.json()
@@ -184,9 +202,9 @@ export async function POST(request: NextRequest) {
             // Formatar os resultados em Markdown
             let markdownResponse = vectorStoreResult.servicos.map(formatServiceToMarkdown).join("\n\n---\n\n")
 
-            // Se o idioma não for português, traduzir os resultados
+            // Se o idioma não for português, traduzir os resultados usando a função de tradução
             if (language !== "pt") {
-                markdownResponse = await translateResults(markdownResponse, language)
+                markdownResponse = await translateText(markdownResponse, language)
             }
 
             return NextResponse.json({
@@ -211,67 +229,6 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error("Erro ao processar busca:", error)
         return NextResponse.json({ error: "Erro ao processar a busca. Por favor, tente novamente." }, { status: 500 })
-    }
-}
-
-// 2. Adicionar função para traduzir os resultados
-async function translateResults(markdown: string, targetLanguage: string): Promise<string> {
-    try {
-        // Gerar uma chave de cache baseada no texto e idioma alvo
-        const cacheKey = generateCacheKey(`translate-${markdown}-${targetLanguage}`)
-
-        // Usar o Azure OpenAI para traduzir o texto
-        const completion = await azureOpenAI.chat.completions.create({
-            model: "4o-mini",
-            messages: [
-                {
-                    role: "system",
-                    content: `Você é um tradutor especializado. Traduza o seguinte texto em Markdown do português para o ${targetLanguage === "en" ? "inglês" : targetLanguage === "es" ? "espanhol" : targetLanguage}. 
-          Mantenha todas as formatações Markdown, links e estrutura original. 
-          Não traduza nomes próprios, URLs ou códigos. 
-          Mantenha os marcadores especiais como [SOLICITAR_NORMAL] e [SOLICITAR_ANONIMO].`,
-                },
-                {
-                    role: "user",
-                    content: markdown,
-                },
-            ],
-            temperature: 0.3
-        })
-
-        return completion.choices[0].message.content || markdown
-    } catch (error) {
-        console.error("Erro ao traduzir resultados:", error)
-        return markdown // Em caso de erro, retornar o texto original
-    }
-}
-
-// 3. Adicionar função para traduzir textos simples
-async function translateText(text: string, targetLanguage: string): Promise<string> {
-    try {
-        // Gerar uma chave de cache baseada no texto e idioma alvo
-        const cacheKey = generateCacheKey(`translate-simple-${text}-${targetLanguage}`)
-
-        // Usar o Azure OpenAI para traduzir o texto
-        const completion = await azureOpenAI.chat.completions.create({
-            model: "4o-mini",
-            messages: [
-                {
-                    role: "system",
-                    content: `Traduza o seguinte texto do português para o ${targetLanguage === "en" ? "inglês" : targetLanguage === "es" ? "espanhol" : targetLanguage}. Mantenha URLs e nomes próprios sem tradução.`,
-                },
-                {
-                    role: "user",
-                    content: text,
-                },
-            ],
-            temperature: 0.3
-        })
-
-        return completion.choices[0].message.content || text
-    } catch (error) {
-        console.error("Erro ao traduzir texto:", error)
-        return text // Em caso de erro, retornar o texto original
     }
 }
 

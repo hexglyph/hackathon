@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { AzureOpenAI } from "openai"
-import { createHash } from "crypto"
 
 // Configuração do cliente Azure OpenAI
 const azureOpenAI = new AzureOpenAI({
@@ -9,14 +8,14 @@ const azureOpenAI = new AzureOpenAI({
     apiVersion: "2024-12-01-preview",
 })
 
-// Função para gerar uma chave de cache baseada no conteúdo do áudio
-async function generateAudioCacheKey(audioBlob: Blob): Promise<string> {
-    // Converter o blob para um buffer
-    const arrayBuffer = await audioBlob.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    // Criar um hash do conteúdo do áudio
-    return createHash("sha256").update(buffer).digest("hex").substring(0, 32)
+// Função para simplificar o tipo MIME para o formato esperado pela API
+function simplifyMimeType(mimeType: string): string {
+    // Extrair apenas a parte após o "/"
+    const parts = mimeType.split("/")
+    if (parts.length === 2) {
+        return parts[1]
+    }
+    return mimeType
 }
 
 export async function POST(request: NextRequest) {
@@ -28,52 +27,70 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Nenhum arquivo de áudio fornecido" }, { status: 400 })
         }
 
+        // Obter o tipo MIME simplificado (ex: "audio/webm" -> "webm")
+        const simplifiedType = simplifyMimeType(audioFile.type)
+
         // Converter o arquivo para um buffer
-        const buffer = Buffer.from(await audioFile.arrayBuffer())
+        const arrayBuffer = await audioFile.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
 
-        // Criar um objeto Blob com o buffer
-        const blob = new Blob([buffer], { type: audioFile.type })
+        // Criar um objeto de arquivo para a API do OpenAI com o tipo simplificado
+        const file = new File([buffer], `audio.${simplifiedType}`, { type: simplifiedType })
 
-        // Gerar uma chave de cache baseada no conteúdo do áudio
-        const cacheKey = await generateAudioCacheKey(blob)
+        const base64str = Buffer.from(buffer).toString("base64")
 
-        // Converter o blob para base64
-        const base64Audio = Buffer.from(await blob.arrayBuffer()).toString("base64")
-
-        // Criar o objeto de conteúdo para a mensagem
-        const content = [
+        const messages = [
             {
-                type: "audio",
-                audio: {
-                    data: base64Audio,
-                    mime_type: audioFile.type,
-                },
-            },
+                role: "user",
+                content: [{
+                    type: "input_audio",
+                    input_audio: {
+                        data: base64str,
+                        format: "wav"
+                    }
+                }],
+            }
         ]
 
-        // Usar o modelo gpt-4o-mini-audio através da API de chat completions
-        const completion = await azureOpenAI.chat.completions.create({
-            model: "gpt-4o-mini-audio",
+        // Usar a API de transcrições com o modelo Whisper
+        const transcription = await azureOpenAI.chat.completions.create({
+            model: "4o-audio",
+            modalities: ["text"],
             messages: [
                 {
+                    name: "Transcribe",
                     role: "user",
-                    content: content,
-                },
+                    content: [{
+                        type: "input_audio",
+                        input_audio: {
+                            data: base64str,
+                            format: "wav"
+                        }
+                    }],
+                }
             ],
-            max_tokens: 5000,
-            temperature: 0.3,
-            cache_key: cacheKey, // Adicionar a chave de cache
+            store: true,
+            temperature: 0.7,
+            max_completion_tokens: 2048,
+            stream: false,
+            response_format: "text",
         })
 
-        // Extrair o texto transcrito da resposta
-        const transcribedText = completion.choices[0].message.content || ""
+        console.log("Transcrição concluída com sucesso")
 
-        return NextResponse.json({ text: transcribedText })
+        return NextResponse.json({ text: transcription.choices[0].message.content }, { status: 200 })
     } catch (error) {
         console.error("Erro ao transcrever áudio:", error)
-        return NextResponse.json(
-            { error: "Erro ao processar a transcrição do áudio. Por favor, tente novamente." },
-            { status: 500 },
-        )
+        console.error("Detalhes do erro da API:", error.error)
+
+        // Fornecer informações mais detalhadas sobre o erro
+        let errorMessage = "Erro ao processar a transcrição do áudio. Por favor, tente novamente."
+
+        if (error.response) {
+            errorMessage = `Erro ${error.response.status}: ${error.response.data?.error?.message || errorMessage}`
+            console.error("Detalhes do erro da API:", error.response.data)
+        }
+
+        return NextResponse.json({ error: errorMessage }, { status: 500 })
     }
 }

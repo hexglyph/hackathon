@@ -2,8 +2,22 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { Search, Mic, Loader2, AlertTriangle, Info, EyeOff, Globe, Sparkles, Volume2, StopCircle } from "lucide-react"
+import { useState, useEffect, useRef, useCallback } from "react"
+// Adicionar os imports para os ícones de avaliação
+import {
+    Search,
+    Mic,
+    Loader2,
+    AlertTriangle,
+    Info,
+    EyeOff,
+    Globe,
+    Sparkles,
+    Volume2,
+    StopCircle,
+    ThumbsUp,
+    ThumbsDown,
+} from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 // Corrigir o caminho de importação
@@ -103,6 +117,11 @@ export default function PrefeituraDigital() {
     const [isTranscribing, setIsTranscribing] = useState(false)
     const [isSpeaking, setIsSpeaking] = useState(false)
     const audioRef = useRef<HTMLAudioElement | null>(null)
+
+    // Adicionar estados para controlar a avaliação
+    const [feedbackGiven, setFeedbackGiven] = useState(false)
+    const [feedbackType, setFeedbackType] = useState<"positive" | "negative" | null>(null)
+    const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
 
     // Função para expandir o componente
     const expandComponent = () => {
@@ -216,6 +235,9 @@ export default function PrefeituraDigital() {
         setSiteResults(null)
         setError(null)
         setSiteError(null)
+        setFeedbackGiven(false)
+        setFeedbackType(null)
+        setFeedbackMessage(null)
 
         // Interpretar a consulta do usuário
         const interpreted = await interpretQuery(query)
@@ -417,14 +439,85 @@ export default function PrefeituraDigital() {
         }
     }
 
-    // Função para transcrever o áudio usando a API
+    // Modificar a função startRecording para converter o áudio para WAV antes de enviar
+    // Adicionar esta função após a declaração de startRecording
+
+    // Função para converter o áudio para WAV usando Web Audio API
+    const convertToWav = async (audioBlob: Blob): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            try {
+                // Criar um objeto de URL para o blob
+                const blobUrl = URL.createObjectURL(audioBlob)
+
+                // Criar um elemento de áudio para carregar o blob
+                const audio = new Audio()
+                audio.src = blobUrl
+
+                // Criar um contexto de áudio
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+
+                // Criar um nó de destino
+                const destination = audioContext.createMediaStreamDestination()
+
+                // Criar um elemento de áudio para reproduzir o blob
+                const source = audioContext.createMediaElementSource(audio)
+
+                // Conectar a fonte ao destino
+                source.connect(destination)
+
+                // Criar um MediaRecorder para gravar o stream de áudio
+                const mediaRecorder = new MediaRecorder(destination.stream)
+                const chunks: Blob[] = []
+
+                // Configurar o evento de dados disponíveis
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        chunks.push(event.data)
+                    }
+                }
+
+                // Configurar o evento de parada
+                mediaRecorder.onstop = () => {
+                    // Criar um blob WAV com os chunks
+                    const wavBlob = new Blob(chunks, { type: "audio/wav" })
+
+                    // Liberar a URL do blob
+                    URL.revokeObjectURL(blobUrl)
+
+                    // Resolver a promessa com o blob WAV
+                    resolve(wavBlob)
+                }
+
+                // Iniciar a gravação
+                mediaRecorder.start()
+
+                // Reproduzir o áudio
+                audio.play()
+
+                // Parar a gravação quando o áudio terminar
+                audio.onended = () => {
+                    mediaRecorder.stop()
+                }
+            } catch (error) {
+                console.error("Erro ao converter áudio:", error)
+                reject(error)
+            }
+        })
+    }
+
+    // Modificar a função transcribeAudio para usar a conversão
     const transcribeAudio = async (audioBlob: Blob) => {
         try {
             setIsTranscribing(true)
 
+            // Converter o áudio para WAV
+            console.log("Convertendo áudio para WAV...")
+            const wavBlob = await convertToWav(audioBlob)
+            console.log("Áudio convertido com sucesso:", wavBlob.type, wavBlob.size, "bytes")
+
             // Criar um FormData para enviar o arquivo
             const formData = new FormData()
-            formData.append("audio", audioBlob)
+            formData.append("audio", wavBlob, "audio.wav")
 
             // Enviar o áudio para a API de transcrição
             const response = await fetch("/api/transcribe", {
@@ -464,7 +557,7 @@ export default function PrefeituraDigital() {
             // Limpar o texto de marcações markdown e links
             const cleanText = text
                 .replace(/\*\*(.*?)\*\*/g, "$1") // Remover negrito
-                .replace(/\[(.*?)\]$$.*?$$/g, "$1") // Remover links
+                .replace(/\[(.*?)\]$.*?$/g, "$1") // Remover links
                 .replace(/#{1,6}\s(.*?)(\n|$)/g, "$1. ") // Converter cabeçalhos em texto normal
 
             // Enviar o texto para a API de síntese de voz
@@ -573,7 +666,9 @@ export default function PrefeituraDigital() {
         return services
     }
 
-    // Renderizar os resultados como cards
+    // Modificar a função renderResultsAsCards para implementar a divisão em 2 blocos no desktop
+    // Substituir a função renderResultsAsCards existente com esta versão:
+
     const renderResultsAsCards = () => {
         if (!results) return null
 
@@ -584,7 +679,7 @@ export default function PrefeituraDigital() {
                 {services.map((serviceMarkdown, index) => (
                     <Card key={index} className="overflow-hidden">
                         <CardContent className="p-0">
-                            <div className="p-6">
+                            <div className="p-4 md:p-5">
                                 <div className="flex justify-between items-start mb-2">
                                     <div></div> {/* Espaço vazio para alinhamento */}
                                     <button
@@ -619,11 +714,11 @@ export default function PrefeituraDigital() {
                                             return renderButton(props, children, "link")
                                         },
                                         h3: ({ node, children, ...props }) => (
-                                            <CardHeader className="p-0 pb-4">
-                                                <CardTitle {...props} className="text-xl font-bold">
+                                            <CardHeader className="p-0 pb-3">
+                                                <CardTitle {...props} className="text-lg font-bold">
                                                     {children}
                                                 </CardTitle>
-                                                <div className="flex flex-wrap gap-2 mt-3">
+                                                <div className="flex flex-wrap gap-2 mt-2">
                                                     {/* Os botões serão inseridos aqui pelo componente 'a' */}
                                                 </div>
                                             </CardHeader>
@@ -640,12 +735,14 @@ export default function PrefeituraDigital() {
         )
     }
 
-    // Renderizar os resultados do site
+    // Modificar a função renderSiteResults para otimizar o espaço
+    // Substituir a função renderSiteResults existente com esta versão:
+
     const renderSiteResults = () => {
         if (!siteResults) return null
 
         return (
-            <div className="space-y-2">
+            <div className="space-y-1">
                 {siteResults.map((result, index) => (
                     <a
                         key={index}
@@ -654,7 +751,7 @@ export default function PrefeituraDigital() {
                         rel="noopener noreferrer"
                         className="block hover:bg-gray-100 transition-colors rounded-md overflow-hidden"
                     >
-                        <div className="p-3 flex items-center max-h-[48px]">
+                        <div className="p-2 flex items-center">
                             <div className="flex-1 overflow-hidden">
                                 <h3 className="font-medium text-sm text-orange-600 truncate">{result.title}</h3>
                                 <p className="text-xs text-gray-500 truncate">{result.description}</p>
@@ -701,10 +798,28 @@ export default function PrefeituraDigital() {
         )
     }
 
+    // Modificar a seção que exibe os resultados para incluir os botões de avaliação
+    // Adicionar função para lidar com o feedback
+    const handleFeedback = useCallback(
+        (type: "positive" | "negative") => {
+            setFeedbackType(type)
+            setFeedbackGiven(true)
+            setFeedbackMessage(
+                type === "positive"
+                    ? "Obrigado pelo feedback positivo!"
+                    : "Agradecemos seu feedback. Vamos trabalhar para melhorar.",
+            )
+
+            // Aqui você poderia enviar o feedback para uma API
+            console.log(`Feedback ${type} para a consulta: "${query}"`)
+        },
+        [query],
+    )
+
     // Modificar o JSX de retorno para implementar a expansão/contração
     return (
         <div
-            className={`bg-orange-500 shadow-md overflow-hidden transition-all duration-100 ease-in-out ${isExpanded ? "bg-white max-h-[2000px] rounded-lg" : "max-h-[160px] gradient-header rounded-[2rem]"
+            className={`bg-orange-500 shadow-md overflow-hidden transition-all duration-100 ease-in-out ${isExpanded ? "bg-white max-h-[5000px] rounded-lg" : "max-h-[160px] gradient-header rounded-[2rem]"
                 }`}
         >
             <div
@@ -834,66 +949,103 @@ export default function PrefeituraDigital() {
 
                         {(results || siteResults) && !isLoading && !isSiteLoading && !isInterpreting && !isTranscribing && (
                             <div className="space-y-6">
-                                {/* Primeiro mostrar os resultados da Vector Store */}
-                                {results && !error && (
-                                    <div
-                                        className={`p-4 rounded-lg ${isOutOfScope ? "bg-yellow-50 border border-yellow-200" : "bg-gray-50"}`}
-                                    >
-                                        <div className="flex justify-between items-center mb-4">
-                                            <h3 className="font-bold text-lg">Serviços Encontrados</h3>
-                                            {results && (
-                                                <button
-                                                    onClick={() => speakText(results)}
-                                                    disabled={isSpeaking}
-                                                    className="p-2 rounded-full bg-orange-100 hover:bg-orange-200 text-orange-700 flex items-center"
-                                                    aria-label="Ouvir todos os resultados"
-                                                >
-                                                    {isSpeaking ? (
-                                                        <>
-                                                            <StopCircle className="w-4 h-4 mr-1" />
-                                                            <span className="text-xs">Parar</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Volume2 className="w-4 h-4 mr-1" />
-                                                            <span className="text-xs">Ouvir</span>
-                                                        </>
-                                                    )}
-                                                </button>
-                                            )}
+                                <div className="md:flex md:gap-6">
+                                    {/* Coluna de resultados da Vector Store */}
+                                    {results && !error && (
+                                        <div
+                                            key="vector-results"
+                                            className={`p-4 rounded-lg ${isOutOfScope ? "bg-yellow-50 border border-yellow-200" : "bg-gray-50"} md:w-2/3`}
+                                        >
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="font-bold text-lg">Serviços Encontrados</h3>
+                                                {results && (
+                                                    <button
+                                                        onClick={() => speakText(results)}
+                                                        disabled={isSpeaking}
+                                                        className="p-2 rounded-full bg-orange-100 hover:bg-orange-200 text-orange-700 flex items-center"
+                                                        aria-label="Ouvir todos os resultados"
+                                                    >
+                                                        {isSpeaking ? (
+                                                            <>
+                                                                <StopCircle className="w-4 h-4 mr-1" />
+                                                                <span className="text-xs">Parar</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Volume2 className="w-4 h-4 mr-1" />
+                                                                <span className="text-xs">Ouvir</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {renderResultsAsCards()}
+
+                                            <div className="mt-4 pt-3 border-t border-gray-200 text-sm text-gray-500">
+                                                {isOutOfScope ? (
+                                                    <div className="flex items-start">
+                                                        <Info className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
+                                                        <p>Para outros assuntos, ligue para o SP156.</p>
+                                                    </div>
+                                                ) : (
+                                                    <p className="flex items-center">
+                                                        <Info className="w-4 h-4 mr-2 flex-shrink-0" />
+                                                        Para mais informações, ligue 156 ou acesse o portal da Prefeitura.
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
+                                    )}
 
-                                        {renderResultsAsCards()}
+                                    {/* Coluna de resultados do site */}
+                                    {siteResults && !siteError && (
+                                        <div key="site-results" className="p-4 rounded-lg bg-gray-50 md:w-1/3">
+                                            <h3 className="font-bold text-lg mb-2">Resultados do Portal</h3>
 
-                                        <div className="mt-6 pt-4 border-t border-gray-200 text-sm text-gray-500">
-                                            {isOutOfScope ? (
-                                                <div className="flex items-start">
-                                                    <Info className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
-                                                    <p>Para outros assuntos, ligue para o SP156.</p>
-                                                </div>
-                                            ) : (
+                                            {renderSiteResults()}
+
+                                            <div className="mt-3 pt-2 border-t border-gray-200 text-xs text-gray-500">
                                                 <p className="flex items-center">
-                                                    <Info className="w-4 h-4 mr-2 flex-shrink-0" />
-                                                    Para mais informações, ligue 156 ou acesse o portal da Prefeitura.
+                                                    <Info className="w-3 h-3 mr-1 flex-shrink-0" />
+                                                    Resultados do portal oficial da Prefeitura
                                                 </p>
-                                            )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Seção de feedback */}
+                                {!feedbackGiven ? (
+                                    <div key="feedback-buttons" className="p-4 bg-gray-50 rounded-lg">
+                                        <p className="text-sm text-center mb-3">Esta resposta foi útil?</p>
+                                        <div className="flex justify-center gap-4">
+                                            <button
+                                                onClick={() => handleFeedback("positive")}
+                                                className="flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-full transition-colors"
+                                            >
+                                                <ThumbsUp className="w-5 h-5" />
+                                                <span>Sim, foi útil</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleFeedback("negative")}
+                                                className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-full transition-colors"
+                                            >
+                                                <ThumbsDown className="w-5 h-5" />
+                                                <span>Não foi útil</span>
+                                            </button>
                                         </div>
                                     </div>
-                                )}
-
-                                {/* Depois mostrar os resultados do site */}
-                                {siteResults && !siteError && (
-                                    <div className="p-4 rounded-lg bg-gray-50">
-                                        <h3 className="font-bold text-lg mb-2">Resultados do Portal da Prefeitura</h3>
-
-                                        {renderSiteResults()}
-
-                                        <div className="mt-4 pt-2 border-t border-gray-200 text-xs text-gray-500">
-                                            <p className="flex items-center">
-                                                <Info className="w-3 h-3 mr-1 flex-shrink-0" />
-                                                Resultados do portal oficial da Prefeitura de São Paulo
-                                            </p>
-                                        </div>
+                                ) : (
+                                    <div
+                                        key="feedback-message"
+                                        className={`p-4 rounded-lg text-center ${feedbackType === "positive" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
+                                            }`}
+                                    >
+                                        <p>{feedbackMessage}</p>
+                                        {feedbackType === "negative" && (
+                                            <p className="text-sm mt-2">Sua opinião nos ajuda a melhorar o serviço.</p>
+                                        )}
                                     </div>
                                 )}
 

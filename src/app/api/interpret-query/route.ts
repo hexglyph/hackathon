@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { AzureOpenAI } from "openai"
-import { createHash } from "crypto"
 
 // Configuração do cliente Azure OpenAI
 const azureOpenAI = new AzureOpenAI({
@@ -59,11 +58,6 @@ Resposta: {
   "language": "en"
 }`
 
-// Função para gerar uma chave de cache baseada na consulta
-function generateCacheKey(query: string): string {
-    return createHash("sha256").update(query).digest("hex").substring(0, 32)
-}
-
 export async function POST(request: NextRequest) {
     try {
         const { query } = await request.json()
@@ -71,9 +65,6 @@ export async function POST(request: NextRequest) {
         if (!query || typeof query !== "string") {
             return NextResponse.json({ error: "Consulta inválida" }, { status: 400 })
         }
-
-        // Gerar uma chave de cache baseada na consulta
-        const cacheKey = generateCacheKey(query)
 
         // Substituir o conteúdo do sistema na chamada da API
         const completion = await azureOpenAI.chat.completions.create({
@@ -89,7 +80,7 @@ export async function POST(request: NextRequest) {
                 },
             ],
             temperature: 0.3,
-            response_format: { type: "json_object" }
+            response_format: { type: "json_object" },
         })
 
         // Extrair a resposta
