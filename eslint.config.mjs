@@ -1,0 +1,52 @@
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      "react/jsx-props-no-spreading": "off",
+        // Disable the rule for default exports
+        "import/prefer-default-export": "off",
+        // Disable the rule for function component definitions
+        "react/function-component-definition": "off",
+        // Disable the rule for prop types
+        "react/prop-types": "off",
+        // Disable the rule for explicit return types on functions
+        "@typescript-eslint/explicit-function-return-type": "off",
+        // Disable the rule for explicit module boundary types
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        // Disable the rule for no unused vars, but keep it as a warning
+        "@typescript-eslint/no-unused-vars": "off",
+        // Disable the rule for no explicit any
+        "@typescript-eslint/no-explicit-any": "off",
+        // Disable the rule for no empty functions
+        "@typescript-eslint/no-empty-function": "off",
+        // Disable the rule for requiring default props
+        "react/require-default-props": "off",
+        // Enforce const usage
+        "prefer-const": "off",
+        // Disable exhaustive-deps rule
+        "react-hooks/exhaustive-deps": "off",
+        "@typescript-eslint/ban-ts-comment": [
+            "error",
+            {
+                "ts-ignore": "allow-with-description",
+                "ts-expect-error": false,
+                "ts-check": false,
+                "minimumDescriptionLength": 3
+            }
+        ]
+    },
+  },
+];
+
+export default eslintConfig;

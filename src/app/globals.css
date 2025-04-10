@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light dark;
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(229 84% 6%);
+  --sidebar-primary-foreground: hsl(215 19% 35%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(214 32% 91%);
+  --sidebar-ring: hsl(214 32% 91%);
+}
+
+.dark {
+  color-scheme: dark;
+  --sidebar: hsl(229 84% 5%);
+  --sidebar-foreground: hsl(210 40% 96%);
+  --sidebar-primary: hsl(229 84% 6%);
+  --sidebar-primary-foreground: hsl(215 19% 35%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(210 40% 96%);
+  --sidebar-border: hsl(214 32% 91%);
+  --sidebar-ring: hsl(214 32% 91%);
+}
+
+.light {
+  color-scheme: light;
+}
+
+@theme {
+  /* Light theme - preserving your current colors but in OKLCH format */
+  --color-background: oklch(96% 0.01 240); /* 210 40% 96% */
+  --color-foreground: oklch(4% 0.005 240); /* 240 10% 4% */
+  --color-card: oklch(98% 0 0); /* 0 0% 98% */
+  --color-card-foreground: oklch(4% 0.005 240); /* 240 10% 4% */
+  --color-popover: oklch(98% 0 0); /* 0 0% 98% */
+  --color-popover-foreground: oklch(4% 0.005 240); /* 240 10% 4% */
+  --color-primary: oklch(25% 0.05 260); /* 229 84% 6% */
+  --color-primary-foreground: oklch(95% 0.02 215); /* 215 19% 35% */
+  --color-secondary: oklch(96% 0.01 240); /* 210 40% 96% */
+  --color-secondary-foreground: oklch(51% 0.15 245); /* 245 58% 51% */
+  --color-muted: oklch(98% 0.005 210); /* 210 40% 98% */
+  --color-muted-foreground: oklch(71% 0.01 214); /* 214 32% 91% */
+  --color-accent: oklch(61% 0.2 210); /* 210 40% 98% */
+  --color-accent-foreground: oklch(25% 0.02 215); /* 215 20% 65% */
+  --color-destructive: oklch(65% 0.2 30); /* 210 40% 96% */
+  --color-destructive-foreground: oklch(96% 0.01 210); /* 345 83% 41% */
+  --color-border: oklch(91% 0.01 214); /* 214 32% 91% */
+  --color-input: oklch(91% 0.01 214); /* 214 32% 91% */
+  --color-ring: oklch(91% 0.01 214); /* 214 32% 91% */
+
+  /* Dark theme - preserving your current colors but in OKLCH format */
+  --color-background-dark: oklch(5% 0.05 229); /* 229 84% 5% */
+  --color-foreground-dark: oklch(96% 0.01 210); /* 210 40% 96% */
+  --color-card-dark: oklch(25% 0.02 215); /* 0 0% 98% */
+  --color-card-foreground-dark: oklch(98% 0 0); /* 240 10% 4% */
+  --color-popover-dark: oklch(4% 0.005 240); /* 0 0% 98% */
+  --color-popover-foreground-dark: oklch(98% 0 0); /* 240 10% 4% */
+  --color-primary-dark: oklch(75% 0.02 215); /* 229 84% 6% */
+  --color-primary-foreground-dark: oklch(15% 0.05 260); /* 215 19% 35% */
+  --color-secondary-dark: oklch(51% 0.15 245); /* 210 40% 96% */
+  --color-secondary-foreground-dark: oklch(96% 0.01 210); /* 245 58% 51% */
+  --color-muted-dark: oklch(15% 0.05 260); /* 210 40% 98% */
+  --color-muted-foreground-dark: oklch(91% 0.01 214); /* 214 32% 91% */
+  --color-accent-dark: oklch(61% 0.2 210); /* 210 40% 98% */
+  --color-accent-foreground-dark: oklch(15% 0.02 215); /* 215 19% 35% */
+  --color-destructive-dark: oklch(96% 0.01 210); /* 210 40% 96% */
+  --color-destructive-foreground-dark: oklch(65% 0.2 30); /* 345 83% 41% */
+  --color-border-dark: oklch(31% 0.01 214); /* 214 32% 91% */
+  --color-input-dark: oklch(32% 0.02 229); /* 229 12% 52% */
+  --color-ring-dark: oklch(71% 0.01 214); /* 214 32% 91% */
+
+  --radius: 0.25rem; /* Keeping your current radius */
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+body {
+  color: var(--color-foreground);
+  background-color: var(--color-background);
+}
+
+/* Melhorias de acessibilidade para foco */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+.dark :focus-visible {
+  outline: 2px solid var(--color-ring-dark);
+}
+
+/* Remover outline para elementos que já têm estilo de foco */
+button:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Preserving your custom utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.btn-pagination-blue {
+  @apply rounded-md px-4 py-2 text-gray-700 hover:bg-blue-500 hover:text-white disabled:opacity-60 dark:text-white;
+}
+
+.btn-pagination-active {
+  @apply bg-blue-500 text-white;
+}
