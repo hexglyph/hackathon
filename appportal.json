@@ -1,0 +1,156 @@
+{
+  "applications": [
+    {
+      "name": "Fornecedores PMSP",
+      "description": "Aplicativo que permite consultar a emissão de Empenhos e Liquidações para Pagamentos aos fornecedores de bens e serviços, registrados no Sistema de Orçamento e Finanças – SOF da Prefeitura do Município de São Paulo. O aplicativo permite, ainda, habilitar a opção de recebimento de notific",
+      "platforms": {
+        "iOS": "https://apps.apple.com/br/app/fornecedores-pmsp/id979354940",
+        "Android": "https://play.google.com/store/apps/details?id=br.gov.sp.prefeitura.sof"
+      }
+    },
+    {
+      "name": "CADIN PMSP",
+      "description": "Aplicativo da Prefeitura do Município de São Paulo que permite consultar a existência de pendências de Pessoas Físicas e Jurídicas perante a Administração Pública Municipal. São passíveis de inclusão no CADIN: obrigações pecuniárias vencidas e não pagas e a ausência de prestação d",
+      "platforms": {
+        "iOS": "https://apps.apple.com/br/app/cadin-pmsp/id977309316",
+        "Android": "https://play.google.com/store/apps/details?id=br.gov.sp.prefeitura.cadin"
+      }
+    },
+    {
+      "name": "Agenda Fácil – Prefeitura SP",
+      "description": "O Agenda Fácil é um aplicativo lançado pela Prefeitura de São Paulo. Com ele é possível agendar, confirmar e cancelar consultas e exames pelo aparelho celular nas Unidades Básicas de Saúde do município, além disso, também é possível atualizar dados cadastrais e visualizar resultados de",
+      "platforms": {
+        "iOS": "https://apps.apple.com/br/app/agenda-f%C3%A1cil-prefeitura-sp/id1359873566",
+        "Android": "https://play.google.com/store/apps/details?id=saude.prefeitura.sp.gov.br.autoagendamento"
+      }
+    },
+    {
+      "name": "SP 156",
+      "description": "O SP156 é um aplicativo para solicitação de serviços da Prefeitura de São Paulo, O aplicativo utiliza georreferenciamento para identificar sua localização e facilitar a indicação de onde o serviço deve ser prestado. Também é possível tirar uma foto ou anexar uma foto da galeria ao abri",
+      "platforms": {
+        "iOS": "https://apps.apple.com/br/app/sp156/id1171409175?l=en",
+        "Android": "https://play.google.com/store/apps/details?id=com.pmsp.sp156&hl=pt_BR"
+      }
+    },
+    {
+      "name": "SP + SEGURA",
+      "description": "O SP+Segura é uma plataforma móvel colaborativa. Através do mapa você sabe o que acontece ao seu redor, em tempo real e permite que o cidadão informe, através de foto, vídeo e áudio, onde estão ocorrendo crimes e desordens urbanas de forma anônima e georreferenciada. O aplicativo permi",
+      "platforms": {
+        "Android": "https://play.google.com/store/apps/details?id=com.policiapopular.spsegura&hl=pt_BR"
+      }
+    }
+  ],
+  "portals": [
+    {
+      "name": "Participe+",
+      "description": "O Participe+ existe para proporcionar um ambiente para a discussão e formulação de políticas públicas municipais de maneira colaborativa entre população e governo. Para isso, disponibilizamos três formatos de participação: Consultas Públicas, Orçamento Cidadão e Vota",
+      "link": "https://participemais.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2021/04/logo_participe_mais.png"
+    },
+    {
+      "name": "Mobilidade Segura",
+      "description": "No Painel Mobilidade Segura a Prefeitura de São Paulo disponibiliza as principais informações registradas pelo programa de fiscalização de trânsito da cidade.",
+      "link": "http://mobilidadesegura.prefeitura.sp.gov.br/QvAJAXZfc/opendoc.htm?document=Painel_Mobilidade_Segura.qvw&amp;amp;amp;amp;amp;host=QVS%40c65v27i&amp;amp;amp;amp;amp;anonymous=true"
+    },
+    {
+      "name": "Prato Aberto",
+      "description": "A Plataforma Prato Aberto permite a consulta interativa ao cardápio diário a ser servido para cada série das escolas municipais, informando pais e estudantes sobre os itens de cada uma das refeições e os nutricionistas que o elaboraram.",
+      "link": "https://pratoaberto.sme.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/icon-1.png"
+    },
+    {
+      "name": "Pátio Digital",
+      "description": "O Pátio Digital tem como objetivo aumentar os níveis de transparência da Secretaria Municipal de Educação e fortalecer o acompanhamento das políticas educacionais, promovendo a colaboração entre governo e sociedade civil no aprimoramento da gestão.",
+      "link": "http://patiodigital.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/patiodigital.sme.prefeitura.sp_.gov_.br_.png"
+    },
+    {
+      "name": "ObservaSampa",
+      "description": "O Portal ObservaSampa (Observatório de Indicadores da Cidade de São Paulo) disponibiliza um sistema de indicadores da cidade acompanhado de análises setoriais importantes para a elaboração e avaliação de políticas públicas.",
+      "link": "http://observasampa.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/logo_observa_sampa_.png"
+    },
+    {
+      "name": "Gestão Urbana SP",
+      "description": "A Plataforma Gestão Urbana SP agrega as informações sobre o planejamento do município, disponibilizando dados sobre os projetos em andamento, ferramentas de participação, agenda de atividades e marcos regulatórios.",
+      "link": "https://gestaourbana.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/gestaourbana.prefeitura.sp_.gov_.br_-1.png"
+    },
+    {
+      "name": "SP 156",
+      "description": "O Portal de Atendimento SP 156 possibilita abrir solicitações de diversos serviços públicos oferecidos pela Prefeitura, além de disponibilizar um guia de informações sobre tais serviços.",
+      "link": "https://sp156.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/icon-2.png"
+    },
+    {
+      "name": "HabitaSAMPA",
+      "description": "A Plataforma HabitaSAMPA possui informações sobre programas, projetos, relatórios de atendimentos realizados, além de contar com um mapa de informações cartográficas e visa promover melhorias no atendimento e na formulação de políticas habitacionais.",
+      "link": "http://www.habitasampa.inf.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/logo_habita_sampa.png"
+    },
+    {
+      "name": "SP Cultura",
+      "description": "O SP Cultura é uma plataforma livre e colaborativa de mapeamento do cenário cultural paulistano. Na plataforma é possível obter informações sobre diversas opções culturais, tais como shows musicais, espetáculos teatrais, sessões de cinema etc.",
+      "link": "https://spcultura.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/logo_sp_cultura.png"
+    },
+    {
+      "name": "Aqui tem Remédio",
+      "description": "O Aqui tem Remédio é uma ferramenta de auxílio para encontrar em quais farmácias da rede municipal de saúde há determinados medicamentos disponibilizados gratuitamente pela Prefeitura.",
+      "link": "http://aquitemremedio.prefeitura.sp.gov.br/#/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/logo_aqui_tem_remedio.gif"
+    },
+    {
+      "name": "Busca Saúde",
+      "description": "O Busca Saúde é um sistema de localização de estabelecimentos ou serviços de saúde da rede pública do SUS (Sistema Único de Saúde) no Município de São Paulo, permitindo a obtenção de informações por meio de consultas automatizadas.",
+      "link": "http://buscasaude.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/logo_busca_saude.png"
+    },
+    {
+      "name": "Legislação Municipal",
+      "description": "No site Legislação Municipal é possível consultar a legislação em vigor na cidade de São Paulo, bem como suas portarias e comunicados. Além disso, é possível encontrar a razão dos vetos e procurar legislação de destaque, como a Lei Orgânica do Município e o Plano D",
+      "link": "http://legislacao.prefeitura.sp.gov.br/"
+    },
+    {
+      "name": "Diário Oficial",
+      "description": "No Diário Oficial da Cidade de São Paulo são publicadas todas as informações oficiais e obrigatórias relativas aos órgãos públicos municipais, inclusive a Câmara Municipal e o Tribunal de Contas do Município de São Paulo.",
+      "link": "http://www.docidadesp.imprensaoficial.com.br/Busca.aspx",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/11/icon.png"
+    },
+    {
+      "name": "Órgãos Municipais",
+      "description": "As seções Acesso à Informação encontram-se em todos os sites dos órgãos municipais, nos quais constam as competências, a estrutura organizacional, a lista dos servidores, os endereços e telefones das unidades, etc. As seções Participação Social constam em todos os",
+      "link": "https://www.prefeitura.sp.gov.br/cidade/secretarias/controladoria_geral/"
+    },
+    {
+      "name": "Plano de Metas",
+      "description": "Neste portal você pode conferir o atual Plano de Metas da Prefeitura do Município de São Paulo",
+      "link": "https://programademetas.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/10/logo_plano_de_metas-2.png"
+    },
+    {
+      "name": "GEOSAMPA",
+      "description": "O Portal GeoSampa é um mapa digital da cidade, que permite consultar e baixar informações georreferenciadas dos equipamentos públicos do Município de São Paulo.",
+      "link": "http://geosampa.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/09/logo_geo_sampa.png"
+    },
+    {
+      "name": "Portal de Processos",
+      "description": "A Prefeitura de São Paulo disponibiliza o acesso aos seus processos administrativos através do Portal de Consulta de Processos. Todos os processos públicos estão disponíveis a partir da pesquisa realizada com o número do respectivo processo.",
+      "link": "https://processos.prefeitura.sp.gov.br/forms/consultarprocessos.aspx",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/09/processos.prefeitura.sp_.gov_.br_forms_consultarprocessos.aspx_.png"
+    },
+    {
+      "name": "Prefeitura de São Paulo",
+      "description": "O Portal da Prefeitura de São Paulo disponibiliza informações gerais para acompanhamento das ações da Prefeitura, sobre os serviços públicos realizados e links para cada um dos órgãos públicos municipais.",
+      "link": "http://www.capital.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/09/logo_prefeitura_de_sao_paulo-1.png"
+    },
+    {
+      "name": "Dados Abertos",
+      "description": "O Portal de Dados Abertos centraliza a disponibilização das bases de dados em formato aberto dos órgãos públicos municipais, úteis para construção de aplicativos e melhoria na visualização de dados.",
+      "link": "http://dados.prefeitura.sp.gov.br/",
+      "image": "http://transparencia.prefeitura.sp.gov.br/wp-content/uploads/2020/09/dados_abertos.png"
+    }
+  ]
+}

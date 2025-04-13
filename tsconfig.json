@@ -35,8 +35,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next-auth.d.ts",
-    "src/models/GridCell.js",
-    "src/models/saoPauloBoundary.js"
   ],
   "exclude": [
     "node_modules"

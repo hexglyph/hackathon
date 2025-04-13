@@ -2,7 +2,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 // Adicionar os imports para os ícones de avaliação
 import {
     Search,
@@ -22,6 +22,7 @@ import ReactMarkdown from "react-markdown"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 // Corrigir o caminho de importação
 import LocationMap from "@/features/location-map"
+import { speechToText, textToSpeech } from "@/lib/speech-service"
 
 // Estilos para o gradiente animado
 const gradientStyles = `
@@ -111,17 +112,61 @@ export default function PrefeituraDigital() {
         language: string
     } | null>(null)
 
-    // Novos estados para gravação de áudio e síntese de voz
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-    const audioChunksRef = useRef<Blob[]>([])
-    const [isTranscribing, setIsTranscribing] = useState(false)
+    // Novos estados para síntese de voz
     const [isSpeaking, setIsSpeaking] = useState(false)
-    const audioRef = useRef<HTMLAudioElement | null>(null)
 
     // Adicionar estados para controlar a avaliação
     const [feedbackGiven, setFeedbackGiven] = useState(false)
     const [feedbackType, setFeedbackType] = useState<"positive" | "negative" | null>(null)
     const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
+
+    // Referência para o formulário
+    const formRef = useRef<HTMLFormElement>(null)
+
+    // Inicializar os serviços de fala
+    useEffect(() => {
+        // Configurar callbacks para o serviço de reconhecimento de fala
+        speechToText.setCallbacks(
+            // Callback para texto intermediário
+            (text) => {
+                console.log("Texto intermediário: ", text)
+                setQuery(text)
+            },
+            // Callback para erros
+            (error) => {
+                console.error("Erro no reconhecimento de fala:", error)
+                setIsRecording(false)
+            },
+            // Callback para resultado final
+            (finalText) => {
+                console.log("Texto final: ", finalText)
+                setQuery(finalText)
+                setIsRecording(false)
+            },
+            // Novo callback para busca automática
+            (searchText) => {
+                console.log("Executando busca automática com: ", searchText)
+                // Executar a busca automaticamente após o reconhecimento
+                if (searchText.trim() && formRef.current) {
+                    // Simular o envio do formulário
+                    formRef.current.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }))
+                }
+            },
+        )
+
+        // Configurar callbacks para o serviço de síntese de fala
+        textToSpeech.setCallbacks(
+            // Callback para estado de reprodução
+            (isPlaying) => {
+                setIsSpeaking(isPlaying)
+            },
+            // Callback para erros
+            (error) => {
+                console.error("Erro na síntese de fala:", error)
+                setIsSpeaking(false)
+            },
+        )
+    }, [])
 
     // Função para expandir o componente
     const expandComponent = () => {
@@ -226,6 +271,8 @@ export default function PrefeituraDigital() {
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!query.trim()) return
+
+        console.log("Executando busca com: ", query)
 
         // Garantir que o componente esteja expandido
         setIsExpanded(true)
@@ -349,268 +396,51 @@ export default function PrefeituraDigital() {
         }
     }
 
-    // Função para iniciar o reconhecimento de voz usando a API Web Speech
-    const startListening = () => {
-        if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-            setIsListening(true)
-
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-            const recognition = new SpeechRecognition()
-
-            recognition.lang = "pt-BR"
-            recognition.continuous = false
-            recognition.interimResults = false
-
-            recognition.onresult = (event: any) => {
-                const transcript = event.results[0][0].transcript
-                setQuery(transcript)
-                setIsListening(false)
-            }
-
-            recognition.onerror = () => {
-                setIsListening(false)
-            }
-
-            recognition.onend = () => {
-                setIsListening(false)
-            }
-
-            recognition.start()
-        } else {
-            alert("Seu navegador não suporta reconhecimento de voz.")
-            setIsListening(false)
-        }
-    }
-
-    // Nova função para iniciar a gravação de áudio usando MediaRecorder
+    // Função para iniciar o reconhecimento de fala usando o Azure Speech
     const startRecording = async () => {
-        try {
-            expandComponent()
+        expandComponent()
+        setIsRecording(true)
 
-            // Solicitar permissão para acessar o microfone
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        console.log("Iniciando gravação...")
+        const success = await speechToText.startRecognition()
 
-            // Criar um novo MediaRecorder
-            const mediaRecorder = new MediaRecorder(stream)
-            mediaRecorderRef.current = mediaRecorder
-            audioChunksRef.current = []
-
-            // Configurar o evento de dados disponíveis
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunksRef.current.push(event.data)
-                }
-            }
-
-            // Configurar o evento de parada
-            mediaRecorder.onstop = async () => {
-                // Criar um blob com os chunks de áudio
-                const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" })
-
-                // Transcrever o áudio
-                await transcribeAudio(audioBlob)
-
-                // Parar todas as faixas do stream
-                stream.getTracks().forEach((track) => track.stop())
-            }
-
-            // Iniciar a gravação
-            mediaRecorder.start()
-            setIsRecording(true)
-
-            // Parar a gravação após 10 segundos se o usuário não parar manualmente
-            setTimeout(() => {
-                if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-                    stopRecording()
-                }
-            }, 10000)
-        } catch (error) {
-            console.error("Erro ao iniciar gravação:", error)
-            alert("Não foi possível acessar o microfone. Verifique as permissões do navegador.")
+        if (!success) {
+            console.error("Falha ao iniciar reconhecimento")
             setIsRecording(false)
         }
     }
 
-    // Função para parar a gravação
+    // Função para parar o reconhecimento de fala
     const stopRecording = () => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-            mediaRecorderRef.current.stop()
-            setIsRecording(false)
-        }
+        console.log("Parando gravação...")
+        speechToText.stopRecognition()
+        setIsRecording(false)
     }
 
-    // Modificar a função startRecording para converter o áudio para WAV antes de enviar
-    // Adicionar esta função após a declaração de startRecording
-
-    // Função para converter o áudio para WAV usando Web Audio API
-    const convertToWav = async (audioBlob: Blob): Promise<Blob> => {
-        return new Promise((resolve, reject) => {
-            try {
-                // Criar um objeto de URL para o blob
-                const blobUrl = URL.createObjectURL(audioBlob)
-
-                // Criar um elemento de áudio para carregar o blob
-                const audio = new Audio()
-                audio.src = blobUrl
-
-                // Criar um contexto de áudio
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-
-                // Criar um nó de destino
-                const destination = audioContext.createMediaStreamDestination()
-
-                // Criar um elemento de áudio para reproduzir o blob
-                const source = audioContext.createMediaElementSource(audio)
-
-                // Conectar a fonte ao destino
-                source.connect(destination)
-
-                // Criar um MediaRecorder para gravar o stream de áudio
-                const mediaRecorder = new MediaRecorder(destination.stream)
-                const chunks: Blob[] = []
-
-                // Configurar o evento de dados disponíveis
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        chunks.push(event.data)
-                    }
-                }
-
-                // Configurar o evento de parada
-                mediaRecorder.onstop = () => {
-                    // Criar um blob WAV com os chunks
-                    const wavBlob = new Blob(chunks, { type: "audio/wav" })
-
-                    // Liberar a URL do blob
-                    URL.revokeObjectURL(blobUrl)
-
-                    // Resolver a promessa com o blob WAV
-                    resolve(wavBlob)
-                }
-
-                // Iniciar a gravação
-                mediaRecorder.start()
-
-                // Reproduzir o áudio
-                audio.play()
-
-                // Parar a gravação quando o áudio terminar
-                audio.onended = () => {
-                    mediaRecorder.stop()
-                }
-            } catch (error) {
-                console.error("Erro ao converter áudio:", error)
-                reject(error)
-            }
-        })
-    }
-
-    // Modificar a função transcribeAudio para usar a conversão
-    const transcribeAudio = async (audioBlob: Blob) => {
-        try {
-            setIsTranscribing(true)
-
-            // Converter o áudio para WAV
-            console.log("Convertendo áudio para WAV...")
-            const wavBlob = await convertToWav(audioBlob)
-            console.log("Áudio convertido com sucesso:", wavBlob.type, wavBlob.size, "bytes")
-
-            // Criar um FormData para enviar o arquivo
-            const formData = new FormData()
-            formData.append("audio", wavBlob, "audio.wav")
-
-            // Enviar o áudio para a API de transcrição
-            const response = await fetch("/api/transcribe", {
-                method: "POST",
-                body: formData,
-            })
-
-            if (!response.ok) {
-                throw new Error("Erro ao transcrever áudio")
-            }
-
-            const data = await response.json()
-
-            // Definir o texto transcrito como consulta
-            if (data.text) {
-                setQuery(data.text)
-            }
-        } catch (error) {
-            console.error("Erro ao transcrever áudio:", error)
-            alert("Não foi possível transcrever o áudio. Por favor, tente novamente.")
-        } finally {
-            setIsTranscribing(false)
-        }
-    }
-
-    // Função para converter texto em fala
+    // Função para converter texto em fala usando o Azure Speech
     const speakText = async (text: string) => {
-        try {
-            // Parar qualquer áudio em reprodução
-            if (audioRef.current) {
-                audioRef.current.pause()
-                audioRef.current = null
-            }
+        // Limpar o texto de marcações markdown e links
+        const cleanText = text
+            .replace(/\*\*(.*?)\*\*/g, "$1") // Remover negrito
+            .replace(/\[(.*?)\]$.*?$/g, "$1") // Remover links
+            .replace(/#{1,6}\s(.*?)(\n|$)/g, "$1. ") // Converter cabeçalhos em texto normal
+            .replace(/\[SOLICITAR_NORMAL\].*?$/gm, "") // Remover marcadores especiais
+            .replace(/\[SOLICITAR_ANONIMO\].*?$/gm, "") // Remover marcadores especiais
 
-            setIsSpeaking(true)
+        // Selecionar a voz com base no idioma detectado
+        const voiceName =
+            interpretedQuery?.language === "en"
+                ? "en-US-JennyNeural"
+                : interpretedQuery?.language === "es"
+                    ? "es-ES-ElviraNeural"
+                    : "pt-BR-AntonioNeural"
 
-            // Limpar o texto de marcações markdown e links
-            const cleanText = text
-                .replace(/\*\*(.*?)\*\*/g, "$1") // Remover negrito
-                .replace(/\[(.*?)\]$.*?$/g, "$1") // Remover links
-                .replace(/#{1,6}\s(.*?)(\n|$)/g, "$1. ") // Converter cabeçalhos em texto normal
-
-            // Enviar o texto para a API de síntese de voz
-            const response = await fetch("/api/text-to-speech", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    text: cleanText,
-                    voice: "alloy", // Voz padrão
-                }),
-            })
-
-            if (!response.ok) {
-                throw new Error("Erro ao sintetizar voz")
-            }
-
-            // Criar um blob com a resposta
-            const audioBlob = await response.blob()
-            const audioUrl = URL.createObjectURL(audioBlob)
-
-            // Criar um elemento de áudio e reproduzir
-            const audio = new Audio(audioUrl)
-            audioRef.current = audio
-
-            // Configurar eventos
-            audio.onended = () => {
-                setIsSpeaking(false)
-                URL.revokeObjectURL(audioUrl)
-            }
-
-            audio.onerror = () => {
-                setIsSpeaking(false)
-                URL.revokeObjectURL(audioUrl)
-            }
-
-            // Reproduzir o áudio
-            await audio.play()
-        } catch (error) {
-            console.error("Erro ao sintetizar voz:", error)
-            setIsSpeaking(false)
-            alert("Não foi possível reproduzir o texto. Por favor, tente novamente.")
-        }
+        await textToSpeech.speak(cleanText, voiceName)
     }
 
     // Função para parar a reprodução de áudio
     const stopSpeaking = () => {
-        if (audioRef.current) {
-            audioRef.current.pause()
-            audioRef.current = null
-            setIsSpeaking(false)
-        }
+        textToSpeech.stop()
     }
 
     // Função para renderizar um link como botão
@@ -840,7 +670,7 @@ export default function PrefeituraDigital() {
             </div>
 
             <div className={`transition-all duration-300 ${isExpanded ? "p-6" : "px-4 py-3"}`}>
-                <form onSubmit={handleSearch} className={`${isExpanded ? "mb-6" : "mb-0"}`}>
+                <form ref={formRef} onSubmit={handleSearch} className={`${isExpanded ? "mb-6" : "mb-0"}`}>
                     <div className={`relative ${!isExpanded ? "gradient-border" : ""}`}>
                         <input
                             type="text"
@@ -863,24 +693,16 @@ export default function PrefeituraDigital() {
                                     expandComponent()
                                     isRecording ? stopRecording() : startRecording()
                                 }}
-                                disabled={isLoading || isSiteLoading || isInterpreting || isTranscribing}
-                                className={`p-2 rounded-full ${isRecording || isTranscribing
-                                    ? "bg-red-500 text-white"
-                                    : "bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                                disabled={isLoading || isSiteLoading || isInterpreting}
+                                className={`p-2 rounded-full ${isRecording ? "bg-red-500 text-white" : "bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
                                     }`}
                                 aria-label="Gravar áudio"
                             >
-                                {isTranscribing ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : isRecording ? (
-                                    <StopCircle className="w-5 h-5" />
-                                ) : (
-                                    <Mic className="w-5 h-5" />
-                                )}
+                                {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                             </button>
                             <button
                                 type="submit"
-                                disabled={isLoading || isSiteLoading || isInterpreting || isTranscribing || !query.trim()}
+                                disabled={isLoading || isSiteLoading || isInterpreting || !query.trim()}
                                 className="bg-orange-500 text-white p-2 rounded-full hover:bg-orange-600 disabled:opacity-50"
                                 aria-label="Buscar"
                             >
@@ -934,20 +756,16 @@ export default function PrefeituraDigital() {
                 {/* Só mostrar o conteúdo abaixo se estiver expandido */}
                 {isExpanded && (
                     <>
-                        {(isLoading || isSiteLoading || isInterpreting || isTranscribing) && (
+                        {(isLoading || isSiteLoading || isInterpreting) && (
                             <div className="flex flex-col justify-center items-center py-8">
                                 <Loader2 className="w-8 h-8 animate-spin text-orange-500 mb-2" />
                                 <p className="text-gray-600">
-                                    {isTranscribing
-                                        ? "Transcrevendo áudio..."
-                                        : isInterpreting
-                                            ? "Interpretando sua consulta..."
-                                            : "Buscando informações..."}
+                                    {isInterpreting ? "Interpretando sua consulta..." : "Buscando informações..."}
                                 </p>
                             </div>
                         )}
 
-                        {(results || siteResults) && !isLoading && !isSiteLoading && !isInterpreting && !isTranscribing && (
+                        {(results || siteResults) && !isLoading && !isSiteLoading && !isInterpreting && (
                             <div className="space-y-6">
                                 <div className="md:flex md:gap-6">
                                     {/* Coluna de resultados da Vector Store */}
@@ -1082,46 +900,39 @@ export default function PrefeituraDigital() {
                             </div>
                         )}
 
-                        {!results &&
-                            !siteResults &&
-                            !isLoading &&
-                            !isSiteLoading &&
-                            !isInterpreting &&
-                            !isTranscribing &&
-                            !error &&
-                            !siteError && (
-                                <div className="text-center py-8 text-gray-500">
-                                    <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                    <p>Digite sua dúvida ou use o microfone para buscar serviços da Prefeitura.</p>
-                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-w-2xl mx-auto text-left">
-                                        <div className="bg-gray-50 p-3 rounded-md">
-                                            <p className="font-medium text-sm">Exemplos de buscas:</p>
-                                            <ul className="text-xs mt-1 space-y-1">
-                                                <li>• Árvore precisa de poda</li>
-                                                <li>• Segunda via do IPTU</li>
-                                                <li>• Calçada quebrada</li>
-                                            </ul>
-                                        </div>
-                                        <div className="bg-gray-50 p-3 rounded-md">
-                                            <p className="font-medium text-sm">Serviços populares:</p>
-                                            <ul className="text-xs mt-1 space-y-1">
-                                                <li>• Poda de árvores</li>
-                                                <li>• Reparos em vias públicas</li>
-                                                <li>• Matrícula escolar</li>
-                                                <li>• Bilhete Único</li>
-                                            </ul>
-                                        </div>
-                                        <div className="bg-gray-50 p-3 rounded-md">
-                                            <p className="font-medium text-sm">Experimente falar:</p>
-                                            <ul className="text-xs mt-1 space-y-1">
-                                                <li>• "Preciso podar uma árvore na minha rua"</li>
-                                                <li>• "Como faço para pagar o IPTU?"</li>
-                                                <li>• "Where can I find information about public transportation?"</li>
-                                            </ul>
-                                        </div>
+                        {!results && !siteResults && !isLoading && !isSiteLoading && !isInterpreting && !error && !siteError && (
+                            <div className="text-center py-8 text-gray-500">
+                                <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                <p>Digite sua dúvida ou use o microfone para buscar serviços da Prefeitura.</p>
+                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-w-2xl mx-auto text-left">
+                                    <div className="bg-gray-50 p-3 rounded-md">
+                                        <p className="font-medium text-sm">Exemplos de buscas:</p>
+                                        <ul className="text-xs mt-1 space-y-1">
+                                            <li>• Árvore precisa de poda</li>
+                                            <li>• Segunda via do IPTU</li>
+                                            <li>• Calçada quebrada</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-gray-50 p-3 rounded-md">
+                                        <p className="font-medium text-sm">Serviços populares:</p>
+                                        <ul className="text-xs mt-1 space-y-1">
+                                            <li>• Poda de árvores</li>
+                                            <li>• Reparos em vias públicas</li>
+                                            <li>• Matrícula escolar</li>
+                                            <li>• Bilhete Único</li>
+                                        </ul>
+                                    </div>
+                                    <div className="bg-gray-50 p-3 rounded-md">
+                                        <p className="font-medium text-sm">Experimente falar:</p>
+                                        <ul className="text-xs mt-1 space-y-1">
+                                            <li>• "Preciso podar uma árvore na minha rua"</li>
+                                            <li>• "Como faço para pagar o IPTU?"</li>
+                                            <li>• "Where can I find information about public transportation?"</li>
+                                        </ul>
                                     </div>
                                 </div>
-                            )}
+                            </div>
+                        )}
                     </>
                 )}
             </div>
