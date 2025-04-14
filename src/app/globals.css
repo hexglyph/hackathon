@@ -34,7 +34,7 @@
 
 @theme {
   /* Light theme - preserving your current colors but in OKLCH format */
-  --color-background: oklch(96% 0.01 240); /* 210 40% 96% */
+  --color-background: oklch(100% 0 255); /* 210 40% 96% */
   --color-foreground: oklch(4% 0.005 240); /* 240 10% 4% */
   --color-card: oklch(98% 0 0); /* 0 0% 98% */
   --color-card-foreground: oklch(4% 0.005 240); /* 240 10% 4% */
@@ -42,12 +42,12 @@
   --color-popover-foreground: oklch(4% 0.005 240); /* 240 10% 4% */
   --color-primary: oklch(25% 0.05 260); /* 229 84% 6% */
   --color-primary-foreground: oklch(95% 0.02 215); /* 215 19% 35% */
-  --color-secondary: oklch(96% 0.01 240); /* 210 40% 96% */
-  --color-secondary-foreground: oklch(51% 0.15 245); /* 245 58% 51% */
+  --color-secondary: oklch(67% 0.19 45.9); /* 210 40% 96% */
+  --color-secondary-foreground: oklch(100% 0 255); /* 245 58% 51% */
   --color-muted: oklch(98% 0.005 210); /* 210 40% 98% */
   --color-muted-foreground: oklch(71% 0.01 214); /* 214 32% 91% */
-  --color-accent: oklch(61% 0.2 210); /* 210 40% 98% */
-  --color-accent-foreground: oklch(25% 0.02 215); /* 215 20% 65% */
+  --color-accent: oklch(51% 0.15 245); /* 210 40% 98% */
+  --color-accent-foreground: oklch(100% 0 255); /* 215 20% 65% */
   --color-destructive: oklch(65% 0.2 30); /* 210 40% 96% */
   --color-destructive-foreground: oklch(96% 0.01 210); /* 345 83% 41% */
   --color-border: oklch(91% 0.01 214); /* 214 32% 91% */
@@ -133,6 +133,96 @@ body {
 
 .dark :focus-visible {
   outline: 2px solid var(--color-ring-dark);
+}
+
+.top-bar {
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 0.8rem;
+}
+
+.main-header {
+  background-color: white;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.main-footer {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.service-card {
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+}
+
+.news-item {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.news-item:last-child {
+  border-bottom: none;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.carousel-dot.active {
+  background-color: var(--color-primary);
+}
+
+.section-title {
+  position: relative;
+  padding-left: 15px;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 5px;
+  background-color: var(--color-primary);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-secondary);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-primary);
+  color: white;
 }
 
 /* Remover outline para elementos que já têm estilo de foco */

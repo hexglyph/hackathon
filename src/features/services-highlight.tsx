@@ -79,13 +79,13 @@ export default function ServicesHighlight() {
             <div className="grid grid-cols-4 md:grid-cols-4 gap-4">
                 {services.map((service) => (
                     <Link key={service.id} href={service.link} className="block">
-                        <div className="service-card bg-white rounded-md overflow-hidden shadow-sm hover:shadow-md">
+                        <div className="service-card bg-white rounded-md overflow-hidden shadow-sm hover:shadow-md p-2 border border-gray-400/25">
                             <div className="h-[100px] relative">
-                                <Image
+                                <img
                                     src={service.image || "/placeholder.svg?height=100&width=300"}
                                     alt={service.title}
-                                    fill
-                                    className="object-cover"
+                                    width={100}
+                                    className=" object-fill h-full w-full rounded-md"
                                 />
                             </div>
                         </div>

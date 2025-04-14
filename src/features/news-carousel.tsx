@@ -44,19 +44,20 @@ export default function NewsCarousel() {
     }
 
     return (
-        <div className="mt-6 relative">
+        <div className="relative">
             <div className="flex">
-                <div className="w-full md:w-2/3 relative">
-                    <div className="relative h-[300px] bg-sky-400 overflow-hidden">
+                <div className="w-full md:w-10/12 relative">
+                    <div className="relative h-[505px] bg-sky-400 overflow-hidden rounded-md mb-4">
                         <Image
                             src={newsItems[currentSlide].image || "/placeholder.svg?height=300&width=600"}
                             alt={newsItems[currentSlide].title}
                             fill
                             className="object-cover hidden"
                         />
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                            <h3 className="text-white text-lg font-semibold">{newsItems[currentSlide].title}</h3>
-                        </div>
+                    </div>
+
+                    <div className=" bg-secondary text-secondary-foreground p-4 rounded-md">
+                        <h3 className="text-white text-lg font-semibold">{newsItems[currentSlide].title}</h3>
                     </div>
 
                     <div className="absolute left-0 top-1/2 -translate-y-1/2">
@@ -104,20 +105,15 @@ export default function NewsCarousel() {
                     </div>
                 </div>
 
-                <div className="hidden md:flex md:w-1/3 flex-col space-y-2 pl-2">
+                <div className="hidden md:flex md:w-2/12 flex-col space-y-4 pl-4">
                     {newsItems.slice(1, 4).map((item) => (
                         <Link key={item.id} href={item.link} className="block">
-                            <div className="bg-sky-300 rounded-md overflow-hidden shadow-sm h-[95px] flex">
-                                <div className="w-1/3 relative bg-sky-600">
-                                    <Image
-                                        src={item.image || "/placeholder.svg?height=95&width=100"}
-                                        alt={item.title}
-                                        fill
-                                        className="object-cover hidden"
-                                    />
+                            <div className="bg-white rounded-lg overflow-hidden shadow-md flex flex-col h-auto">
+                                <div className="h-32 relative bg-sky-600">
+
                                 </div>
-                                <div className="w-2/3 p-2">
-                                    <h4 className="text-sm font-medium line-clamp-3">{item.title}</h4>
+                                <div className="p-2 border-t border-gray-100 min-h-16">
+                                    <h4 className="text-sm font-medium line-clamp-2">{item.title}</h4>
                                 </div>
                             </div>
                         </Link>

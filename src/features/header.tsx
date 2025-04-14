@@ -4,8 +4,8 @@ import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react"
 
 export default function Header() {
     return (
-        <header>
-            <div className="top-bar py-1 px-4">
+        <header className="shadow-lg shadow-black/10 bg-white mb-10">
+            <div className="top-bar py-1 px-4 bg-secondary text-secondary-foreground">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="hidden md:flex space-x-4 text-xs">
                         <Link href="/acesso-informacao" className="hover:underline">
@@ -61,7 +61,7 @@ export default function Header() {
                 </div>
             </div>
 
-            <div className="main-header py-3 px-4">
+            <div className="main-header py-3 px-4 bg-white">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="flex items-center">
                         <Image src="https://capital.sp.gov.br/documents/34276/0/logo-prefeitura-de-sao-paulo.png/c4464801-6c69-25f2-932b-093acf2e3525?version=1.0&t=1704308342428" alt="Prefeitura de São Paulo" width={230} height={60} priority />

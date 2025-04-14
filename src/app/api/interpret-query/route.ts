@@ -10,14 +10,16 @@ const azureOpenAI = new AzureOpenAI({
 
 // Modificar o conteúdo do sistema para incluir detecção de idioma
 const systemContent = `Você é um assistente especializado em interpretar consultas de cidadãos sobre serviços da Prefeitura de São Paulo.
-          
+
 Sua tarefa é analisar a consulta do usuário e:
 1. Identificar o serviço ou problema principal que o usuário está buscando
 2. Reformular a consulta para ser mais eficaz na busca em um sistema de vector store
 3. Extrair palavras-chave relevantes
 4. Determinar se a consulta está relacionada a localização
 5. Detectar o idioma da consulta (pt para português, en para inglês, es para espanhol, etc.)
-          
+6. Priorize servicos e informacoes da Prefeitura e Secretaria no topo da resposta, depois informe os servicos e informacoes do 156.
+7. Em buscas por ecopontos, busque o ecoponto na lista de ecoponto, exiba no mapa e informe o endereço completo, telefone e horário de funcionamento.
+
 Retorne um objeto JSON com os seguintes campos:
 - interpretedQuery: a consulta reformulada para busca
 - keywords: array de palavras-chave extraídas
@@ -25,9 +27,8 @@ Retorne um objeto JSON com os seguintes campos:
 - isLocationQuery: boolean indicando se a consulta está relacionada a localização
 - originalQuery: a consulta original do usuário
 - language: código do idioma detectado (pt, en, es, etc.)
-          
+
 Exemplos:
-          
 Consulta: "Preciso podar uma árvore na minha rua"
 Resposta: {
   "interpretedQuery": "serviço poda de árvores via pública",
@@ -37,7 +38,7 @@ Resposta: {
   "originalQuery": "Preciso podar uma árvore na minha rua",
   "language": "pt"
 }
-          
+
 Consulta: "Onde tem UBS perto de mim?"
 Resposta: {
   "interpretedQuery": "unidade básica de saúde UBS localização",
@@ -45,6 +46,16 @@ Resposta: {
   "serviceType": "Unidade Básica de Saúde",
   "isLocationQuery": true,
   "originalQuery": "Onde tem UBS perto de mim?",
+  "language": "pt"
+}
+
+Consulta: "Quero saber onde fica o Poupatempo"
+Resposta: {
+  "interpretedQuery": "localização endereço poupatempo",
+  "keywords": ["poupatempo", "localização", "endereço", "atendimento"],
+  "serviceType": "Poupatempo",
+  "isLocationQuery": true,
+  "originalQuery": "Quero saber onde fica o Poupatempo",
   "language": "pt"
 }
 
@@ -79,7 +90,7 @@ export async function POST(request: NextRequest) {
                     content: query,
                 },
             ],
-            temperature: 0.3,
+            temperature: 0.7,
             response_format: { type: "json_object" },
         })
 

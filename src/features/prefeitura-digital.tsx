@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 "use client"
 
@@ -17,6 +18,7 @@ import {
     StopCircle,
     ThumbsUp,
     ThumbsDown,
+    MapPin,
 } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,52 +26,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import LocationMap from "@/features/location-map"
 import { speechToText, textToSpeech } from "@/lib/speech-service"
 
-// Estilos para o gradiente animado
-const gradientStyles = `
-  @keyframes gradient {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-
-  .gradient-border::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #e85d04, #e91e63, #e85d04);
-    background-size: 200% 200%;
-    animation: gradient 3s ease infinite;
-    border-radius: 9999px;
-    z-index: 0;
-  }
-
-  .gradient-border input {
-    position: relative;
-    z-index: 1;
-    background-color: white;
-  }
-
-  .gradient-header {
-    background: linear-gradient(45deg, #e85d04, #e91e63, #e85d04);
-    background-size: 200% 200%;
-    animation: gradient 3s ease infinite;
-  }
-`
-
 export default function PrefeituraDigital() {
     // Adicionar o estilo ao documento
     useEffect(() => {
         const styleElement = document.createElement("style")
-        styleElement.innerHTML = gradientStyles
         document.head.appendChild(styleElement)
 
         return () => {
@@ -239,12 +199,13 @@ export default function PrefeituraDigital() {
                 setIsLocationQuery(true)
 
                 // Se já temos a localização do usuário, mostrar o mapa
-                if (userLocation) {
+                /*if (userLocation) {
                     setShowMap(true)
                 } else {
                     // Se não temos a localização, solicitar
                     shareLocation()
-                }
+                }*/
+                setShowMap(false)
             } else {
                 setIsLocationQuery(false)
                 setShowMap(false)
@@ -449,7 +410,7 @@ export default function PrefeituraDigital() {
             return (
                 <a
                     {...props}
-                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded text-sm no-underline transition-colors"
+                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md text-sm no-underline transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -461,7 +422,7 @@ export default function PrefeituraDigital() {
             return (
                 <a
                     {...props}
-                    className="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 rounded text-sm no-underline transition-colors"
+                    className="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 rounded-md text-sm no-underline transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -599,7 +560,7 @@ export default function PrefeituraDigital() {
         if (!interpretedQuery) return null
 
         return (
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-100">
                 <div className="flex items-start">
                     <Sparkles className="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
                     <div>
@@ -628,6 +589,28 @@ export default function PrefeituraDigital() {
         )
     }
 
+    const renderLocationInfo = () => {
+        if (!isLocationQuery || !interpretedQuery) return null
+
+        return (
+            <div className="mb-6 mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                <div className="flex items-start">
+                    <MapPin className="w-5 h-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p className="text-sm font-medium text-blue-700">Informações de Localização</p>
+                        <p className="text-xs text-blue-600 mt-1">
+                            Para obter o endereço exato do {interpretedQuery.serviceType || "serviço"} mais próximo, você pode ligar
+                            para o SP156 ou consultar o site oficial da Prefeitura.
+                        </p>
+                        <p className="text-xs text-blue-600 mt-2">
+                            Dica: Ative o GPS do seu dispositivo para ver no mapa a unidade mais próxima.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     // Modificar a seção que exibe os resultados para incluir os botões de avaliação
     // Adicionar função para lidar com o feedback
     const handleFeedback = useCallback(
@@ -649,11 +632,11 @@ export default function PrefeituraDigital() {
     // Modificar o JSX de retorno para implementar a expansão/contração
     return (
         <div
-            className={`bg-orange-500 shadow-md overflow-hidden transition-all duration-100 ease-in-out ${isExpanded ? "bg-white max-h-[5000px] rounded-lg" : "max-h-[160px] gradient-header rounded-[2rem]"
+            className={`bg-secondary mb-10 shadow-md overflow-hidden transition-all duration-100 ease-in-out ${isExpanded ? "bg-white max-h-[5000px] rounded-md" : "max-h-[160px] rounded-md"
                 }`}
         >
             <div
-                className={`text-white transition-all duration-300 ${isExpanded ? "py-6 px-6 bg-orange-500" : "py-3 px-4 flex justify-center"
+                className={`text-white transition-all duration-300 ${isExpanded ? "py-6 px-6 bg-secondary" : "py-3 px-4 flex justify-center"
                     }`}
             >
                 <h2
@@ -669,23 +652,23 @@ export default function PrefeituraDigital() {
                 )}
             </div>
 
-            <div className={`transition-all duration-300 ${isExpanded ? "p-6" : "px-4 py-3"}`}>
-                <form ref={formRef} onSubmit={handleSearch} className={`${isExpanded ? "mb-6" : "mb-0"}`}>
-                    <div className={`relative ${!isExpanded ? "gradient-border" : ""}`}>
+            <div className={`transition-all duration-300 ${isExpanded ? "p-6 border-b border-r border-l border-secondary rounded-b-md shadow-lg shadow-secondary" : "px-4 py-3"}`}>
+                <form ref={formRef} onSubmit={handleSearch} className={`${isExpanded ? "mb-6 bg-transparent" : "mb-0"}`}>
+                    <div className={`relative ${!isExpanded ? "" : ""}`}>
                         <input
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             onFocus={expandComponent}
                             onClick={expandComponent}
-                            placeholder="O que você está procurando? Ex: poda de árvore, IPTU, calçada quebrada"
-                            className={`w-full bg-white ${isExpanded
-                                ? "p-4 pr-24 border-gray-300 rounded-lg"
-                                : "py-3 pr-24 pl-4 border-transparent rounded-full text-sm"
-                                } border focus:outline-none focus:ring-2 focus:ring-orange-500`}
+                            placeholder="Descreva o que você está procurando - Exemplo: poda de árvore, IPTU, calçada quebrada, onde tem uma UBS perto de mim"
+                            className={`w-full h-16 bg-white placeholder:text-foreground/50 ${isExpanded
+                                ? "p-4 pr-24 border-gray-300 rounded-md"
+                                : "py-3 pr-24 pl-4 border-transparent rounded-md text-sm"
+                                } border focus:outline-none focus:ring-2 focus:ring-secondary`}
                             maxLength={500}
                         />
-                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2 z-50">
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-4 z-50">
                             <button
                                 type="button"
                                 onClick={(e) => {
@@ -694,30 +677,30 @@ export default function PrefeituraDigital() {
                                     isRecording ? stopRecording() : startRecording()
                                 }}
                                 disabled={isLoading || isSiteLoading || isInterpreting}
-                                className={`p-2 rounded-full ${isRecording ? "bg-red-500 text-white" : "bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                                className={`hover:cursor-pointer p-2 rounded-md ${isRecording ? "bg-red-500 text-white" : "bg-gray-200 hover:bg-gray-200 disabled:opacity-50"
                                     }`}
                                 aria-label="Gravar áudio"
                             >
-                                {isRecording ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                                {isRecording ? <StopCircle className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
                             </button>
                             <button
                                 type="submit"
                                 disabled={isLoading || isSiteLoading || isInterpreting || !query.trim()}
-                                className="bg-orange-500 text-white p-2 rounded-full hover:bg-orange-600 disabled:opacity-50"
+                                className="bg-secondary text-white p-2 rounded-md hover:bg-secondary disabled:opacity-50 hover:cursor-pointer disabled:hover:cursor-not-allowed"
                                 aria-label="Buscar"
                             >
                                 {isLoading || isSiteLoading || isInterpreting ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <Loader2 className="w-8 h-8 animate-spin" />
                                 ) : (
-                                    <Search className="w-5 h-5" />
+                                    <Search className="w-8 h-8" />
                                 )}
                             </button>
                         </div>
                     </div>
                     {isExpanded && (
-                        <div className="mt-2 text-xs text-gray-500 flex items-center">
-                            <Info className="w-3 h-3 mr-1" />
-                            Descreva o serviço que você precisa em linguagem simples ou use o microfone para falar
+                        <div className="mt-2 text-sm text-gray-600 flex items-center">
+                            <Info className="w-4 h-4 mr-1" />
+                            Descreva o serviço que você precisa em linguagem simples, em qualquer idioma, ou use o microfone para falar
                         </div>
                     )}
                 </form>
@@ -730,6 +713,11 @@ export default function PrefeituraDigital() {
                     !isSiteLoading &&
                     renderQueryInterpretation()}
 
+                {isExpanded &&
+                    isLocationQuery &&
+                    !showMap &&
+                    renderLocationInfo()}
+
                 {/* Exibir o mapa quando necessário */}
                 {isExpanded && showMap && (
                     <div className="mb-6 mt-4">
@@ -739,7 +727,7 @@ export default function PrefeituraDigital() {
                             onServiceFound={(service) => setServiceLocation(service)}
                         />
                         {locationError && (
-                            <div className="mt-2 bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                            <div className="mt-2 bg-red-50 text-red-600 p-3 rounded-md text-sm">
                                 <p>{locationError}</p>
                             </div>
                         )}
@@ -748,7 +736,7 @@ export default function PrefeituraDigital() {
 
                 {/* Se houver um erro de localização mas não estamos mostrando o mapa, exibir uma mensagem */}
                 {isExpanded && locationError && !showMap && (
-                    <div className="mb-6 mt-2 bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                    <div className="mb-6 mt-2 bg-red-50 text-red-600 p-3 rounded-md text-sm">
                         <p>{locationError}</p>
                     </div>
                 )}
@@ -772,7 +760,7 @@ export default function PrefeituraDigital() {
                                     {results && !error && (
                                         <div
                                             key="vector-results"
-                                            className={`p-4 rounded-lg ${isOutOfScope ? "bg-yellow-50 border border-yellow-200" : "bg-gray-50"} md:w-2/3`}
+                                            className={`p-4 rounded-md ${isOutOfScope ? "bg-yellow-50 border border-yellow-200" : "bg-gray-50"} md:w-2/3`}
                                         >
                                             <div className="flex justify-between items-center mb-4">
                                                 <h3 className="font-bold text-lg">Serviços Encontrados</h3>
@@ -818,7 +806,7 @@ export default function PrefeituraDigital() {
 
                                     {/* Coluna de resultados do site */}
                                     {siteResults && !siteError && (
-                                        <div key="site-results" className="p-4 rounded-lg bg-gray-50 md:w-1/3">
+                                        <div key="site-results" className="p-4 rounded-md bg-gray-50 md:w-1/3">
                                             <h3 className="font-bold text-lg mb-2">Resultados do Portal</h3>
 
                                             {renderSiteResults()}
@@ -835,7 +823,7 @@ export default function PrefeituraDigital() {
 
                                 {/* Seção de feedback */}
                                 {!feedbackGiven ? (
-                                    <div key="feedback-buttons" className="p-4 bg-gray-50 rounded-lg">
+                                    <div key="feedback-buttons" className="p-4 bg-gray-50 rounded-md">
                                         <p className="text-sm text-center mb-3">Esta resposta foi útil?</p>
                                         <div className="flex justify-center gap-4">
                                             <button
@@ -857,7 +845,7 @@ export default function PrefeituraDigital() {
                                 ) : (
                                     <div
                                         key="feedback-message"
-                                        className={`p-4 rounded-lg text-center ${feedbackType === "positive" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
+                                        className={`p-4 rounded-md text-center ${feedbackType === "positive" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
                                             }`}
                                     >
                                         <p>{feedbackMessage}</p>
@@ -869,7 +857,7 @@ export default function PrefeituraDigital() {
 
                                 {/* Mostrar erros se houver */}
                                 {error && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+                                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md">
                                         <div className="flex items-start">
                                             <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
                                             <div>
@@ -884,7 +872,7 @@ export default function PrefeituraDigital() {
                                 )}
 
                                 {siteError && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
+                                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md">
                                         <div className="flex items-start">
                                             <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" />
                                             <div>
@@ -903,7 +891,7 @@ export default function PrefeituraDigital() {
                         {!results && !siteResults && !isLoading && !isSiteLoading && !isInterpreting && !error && !siteError && (
                             <div className="text-center py-8 text-gray-500">
                                 <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                <p>Digite sua dúvida ou use o microfone para buscar serviços da Prefeitura.</p>
+                                <p>Digite sua dúvida ou use o microfone para buscar serviços e informações da Prefeitura de São Paulo.</p>
                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-w-2xl mx-auto text-left">
                                     <div className="bg-gray-50 p-3 rounded-md">
                                         <p className="font-medium text-sm">Exemplos de buscas:</p>
@@ -916,14 +904,14 @@ export default function PrefeituraDigital() {
                                     <div className="bg-gray-50 p-3 rounded-md">
                                         <p className="font-medium text-sm">Serviços populares:</p>
                                         <ul className="text-xs mt-1 space-y-1">
-                                            <li>• Poda de árvores</li>
+                                            <li>• Descomplica</li>
                                             <li>• Reparos em vias públicas</li>
                                             <li>• Matrícula escolar</li>
                                             <li>• Bilhete Único</li>
                                         </ul>
                                     </div>
                                     <div className="bg-gray-50 p-3 rounded-md">
-                                        <p className="font-medium text-sm">Experimente falar:</p>
+                                        <p className="font-medium text-sm">Experimente escrever:</p>
                                         <ul className="text-xs mt-1 space-y-1">
                                             <li>• "Preciso podar uma árvore na minha rua"</li>
                                             <li>• "Como faço para pagar o IPTU?"</li>

@@ -10,10 +10,18 @@ async function queryVectorStore(query: string) {
             name: "PortalPrefeitura",
             instructions: `Você é um assistente especializado em encontrar serviços da Prefeitura de São Paulo.
             Retorne os dados completos dos serviços relevantes em formato JSON, incluindo nome, descrição, resumo, link e outros campos disponíveis.
-            Exemplo:
+            
+            Se a consulta for sobre ecopontos, retorne no seguinte formato:
+            {
+                "ecopontos": [
+                    {"nome": "Nome do Ecoponto", "endereco": "...", "cep": "...", "horarioFuncionamento": "...", ...}
+                ]
+            }
+            
+            Para outros serviços, use:
             {
                 "servicos": [
-                    {"id": 719, "nome": "Guias e Postes - Solicitar pintura", "taxas": "...",  "descricao": "...", "link": "...", "orgão responsável": "...", ...}
+                    {"id": 719, "nome": "Guias e Postes - Solicitar pintura", "taxas": "...",  "descricao": "...", "link": "...", "orgaoResponsavel": "...", ...}
                 ]
             }`,
             tools: [{ type: "file_search" }],
@@ -61,12 +69,26 @@ async function queryVectorStore(query: string) {
                 console.log("Conteúdo da última mensagem (JSON):", JSON.stringify(content))
 
                 // Tentar extrair JSON válido a partir da resposta
-                const startIndex = content.indexOf("{")
-                const endIndex = content.lastIndexOf("}")
-                if (startIndex === -1 || endIndex === -1) {
-                    throw new Error("JSON não encontrado na resposta do assistente")
+                // Primeiro, verificar se há um bloco de código JSON
+                let jsonStr = ""
+                const jsonBlockMatch = content.match(/```json\s*([\s\S]*?)\s*```/)
+
+                if (jsonBlockMatch && jsonBlockMatch[1]) {
+                    jsonStr = jsonBlockMatch[1]
+                } else {
+                    // Se não encontrar bloco de código, procurar por chaves
+                    const startIndex = content.indexOf("{")
+                    const endIndex = content.lastIndexOf("}")
+                    if (startIndex === -1 || endIndex === -1) {
+                        throw new Error("JSON não encontrado na resposta do assistente")
+                    }
+                    jsonStr = content.substring(startIndex, endIndex + 1)
                 }
-                const jsonStr = content.substring(startIndex, endIndex + 1)
+
+                // Limpar o JSON de possíveis problemas
+                jsonStr = jsonStr
+                    .replace(/【.*?】/g, "") // Remover referências de fonte
+                    .replace(/\s*source\s*/g, "") // Remover palavra "source"
 
                 await azureOpenAI.beta.assistants.del(assistantResponse.id) // Deletar o assistente temporário
                 return JSON.parse(jsonStr) // Retornar o JSON parseado
@@ -81,7 +103,7 @@ async function queryVectorStore(query: string) {
     }
 }
 
-// Modificar a função formatServiceToMarkdown para usar uma abordagem mais simples
+// Função para formatar serviço em Markdown
 function formatServiceToMarkdown(service: any): string {
     const {
         id,
@@ -98,6 +120,10 @@ function formatServiceToMarkdown(service: any): string {
         observacoes,
         orgaoResponsavel,
         link,
+        endereco,
+        localizacao,
+        telefone,
+        horarioFuncionamento,
     } = service
 
     // Criar um cabeçalho com o nome do serviço
@@ -105,8 +131,10 @@ function formatServiceToMarkdown(service: any): string {
 
     // Adicionar os botões de solicitação usando uma sintaxe mais simples
     // Usamos marcadores especiais no texto para identificar os tipos de botões
-    markdown += `[SOLICITAR_NORMAL](${link}?action=solicitar)\n`
-    markdown += `[SOLICITAR_ANONIMO](https://sp156.prefeitura.sp.gov.br/portal/servicos/solicitacao?servico=${id}&anonimo=true)\n\n`
+    if (link) {
+        markdown += `[SOLICITAR_NORMAL](${link}?action=solicitar)\n`
+        markdown += `[SOLICITAR_ANONIMO](https://sp156.prefeitura.sp.gov.br/portal/servicos/solicitacao?servico=${id}&anonimo=true)\n\n`
+    }
 
     // Adicionar informações básicas
     if (descricao) markdown += `**Descrição:** ${descricao}\n\n`
@@ -115,6 +143,11 @@ function formatServiceToMarkdown(service: any): string {
     if (publicoAlvo) markdown += `**Público-alvo:** ${publicoAlvo}\n\n`
     if (taxasPrecoPublico) markdown += `**Taxas/Preço público:** ${taxasPrecoPublico}\n\n`
     if (prazoMaximo) markdown += `**Prazo máximo:** ${prazoMaximo}\n\n`
+
+    if (endereco) markdown += `**Endereço:** ${endereco}\n\n`
+    if (telefone) markdown += `**Telefone:** ${telefone}\n\n`
+    if (horarioFuncionamento) markdown += `**Horário de Funcionamento:** ${horarioFuncionamento}\n\n`
+    if (localizacao) markdown += `**Localização:** ${localizacao}\n\n`
 
     // Adicionar requisitos
     if (requisitosDocumentosInformacoes) {
@@ -152,7 +185,71 @@ function formatServiceToMarkdown(service: any): string {
     if (orgaoResponsavel) markdown += `**Órgão responsável:** ${orgaoResponsavel}\n\n`
 
     // Adicionar link para informações completas
-    markdown += `[**Acessar informação completa**](${link})\n\n`
+    if (link) {
+        // Limpar o link removendo referências de fonte
+        const cleanLink = link.replace(/【.*?】/g, "").replace(/\s*source\s*/g, "")
+        markdown += `[**Acessar informação completa**](${cleanLink})\n\n`
+    }
+
+    return markdown
+}
+
+// Função para formatar ecoponto em Markdown
+function formatEcopontoToMarkdown(ecoponto: any): string {
+    const {
+        nome,
+        endereco,
+        cep,
+        horarioFuncionamento,
+        materiaisAceitos,
+        subprefeitura,
+        aceitaGesso,
+        telefone,
+        link,
+        mapa,
+    } = ecoponto
+
+    // Criar um cabeçalho com o nome do ecoponto
+    let markdown = `### ${nome}\n\n`
+
+    // Adicionar botão para ver no Google Maps
+    if (endereco) {
+        markdown += `[Ver no Google Maps](https://www.google.com/maps/search/${encodeURIComponent(endereco + " São Paulo")})\n\n`
+    }
+
+    // Adicionar informações básicas
+    if (endereco) markdown += `**Endereço:** ${endereco}\n\n`
+    if (cep) markdown += `**CEP:** ${cep}\n\n`
+    if (horarioFuncionamento) markdown += `**Horário de Funcionamento:** ${horarioFuncionamento}\n\n`
+    if (telefone) markdown += `**Telefone:** ${telefone}\n\n`
+
+    // Adicionar informações sobre materiais aceitos
+    if (materiaisAceitos) {
+        markdown += `**Materiais Aceitos:**\n`
+        if (Array.isArray(materiaisAceitos)) {
+            materiaisAceitos.forEach((material) => {
+                markdown += `- ${material}\n`
+            })
+        } else if (typeof materiaisAceitos === "string") {
+            markdown += `${materiaisAceitos}\n`
+        }
+        markdown += `\n`
+    }
+
+    // Adicionar informação sobre aceitação de gesso
+    if (aceitaGesso !== undefined) {
+        markdown += `**Aceita Gesso:** ${aceitaGesso ? "Sim" : "Não"}\n\n`
+    }
+
+    // Adicionar subprefeitura
+    if (subprefeitura) markdown += `**Subprefeitura:** ${subprefeitura}\n\n`
+
+    // Adicionar link para informações completas
+    if (link) {
+        // Limpar o link removendo referências de fonte
+        const cleanLink = link.replace(/【.*?】/g, "").replace(/\s*source\s*/g, "")
+        markdown += `[**Acessar informação completa**](${cleanLink})\n\n`
+    }
 
     return markdown
 }
@@ -198,19 +295,33 @@ export async function POST(request: NextRequest) {
         // Consultar o vector store
         const vectorStoreResult = await queryVectorStore(sanitizedQuery)
 
-        if (vectorStoreResult && vectorStoreResult.servicos) {
-            // Formatar os resultados em Markdown
-            let markdownResponse = vectorStoreResult.servicos.map(formatServiceToMarkdown).join("\n\n---\n\n")
+        if (vectorStoreResult) {
+            let markdownResponse = ""
+
+            // Verificar se temos serviços ou ecopontos
+            if (vectorStoreResult.servicos && vectorStoreResult.servicos.length > 0) {
+                markdownResponse = vectorStoreResult.servicos.map(formatServiceToMarkdown).join("\n\n---\n\n")
+            } else if (vectorStoreResult.ecopontos && vectorStoreResult.ecopontos.length > 0) {
+                markdownResponse = vectorStoreResult.ecopontos.map(formatEcopontoToMarkdown).join("\n\n---\n\n")
+
+                // Adicionar link para o mapa geral, se disponível
+                if (vectorStoreResult.mapa) {
+                    const cleanMapaLink = vectorStoreResult.mapa.replace(/【.*?】/g, "").replace(/\s*source\s*/g, "")
+                    markdownResponse += `\n\n[**Ver todos os Ecopontos no mapa**](${cleanMapaLink})\n\n`
+                }
+            }
 
             // Se o idioma não for português, traduzir os resultados usando a função de tradução
-            if (language !== "pt") {
+            if (language !== "pt" && markdownResponse) {
                 markdownResponse = await translateText(markdownResponse, language)
             }
 
-            return NextResponse.json({
-                result: markdownResponse,
-                isOutOfScope: false,
-            })
+            if (markdownResponse) {
+                return NextResponse.json({
+                    result: markdownResponse,
+                    isOutOfScope: false,
+                })
+            }
         }
 
         // Resposta padrão caso não haja resultados
