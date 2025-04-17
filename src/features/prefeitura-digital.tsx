@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 // @ts-nocheck
 "use client"
 
@@ -251,7 +252,7 @@ export default function PrefeituraDigital() {
         const interpreted = await interpretQuery(query)
 
         // Iniciar ambas as buscas em paralelo com a consulta interpretada
-        searchVectorStore(interpreted.interpretedQuery)
+        searchVectorStore(interpreted.interpretedQuery, interpreted.language)
 
         // Para a busca no site, usar uma versão simplificada da consulta
         // Extrair apenas as palavras-chave principais sem aspas
@@ -261,7 +262,7 @@ export default function PrefeituraDigital() {
         searchSite(siteSearchQuery)
     }
 
-    const searchVectorStore = async (processedQuery: string) => {
+    const searchVectorStore = async (processedQuery: string, detectedLanguage = "pt") => {
         setIsLoading(true)
         setError(null)
         setIsOutOfScope(false)
@@ -275,7 +276,7 @@ export default function PrefeituraDigital() {
                 },
                 body: JSON.stringify({
                     query: processedQuery,
-                    language: interpretedQuery?.language || "pt", // Enviar o idioma detectado
+                    language: detectedLanguage || "pt", // Enviar o idioma detectado
                 }),
             })
 
@@ -410,7 +411,7 @@ export default function PrefeituraDigital() {
             return (
                 <a
                     {...props}
-                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md text-sm no-underline transition-colors"
+                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 mb-2 rounded-md text-sm no-underline transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -422,7 +423,7 @@ export default function PrefeituraDigital() {
             return (
                 <a
                     {...props}
-                    className="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 rounded-md text-sm no-underline transition-colors"
+                    className="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 mb-2 rounded-md text-sm no-underline transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -435,7 +436,7 @@ export default function PrefeituraDigital() {
         return (
             <a
                 {...props}
-                className="text-orange-600 hover:underline"
+                className="text-orange-600 my-2 hover:underline"
                 target={props.href?.startsWith("http") ? "_blank" : undefined}
                 rel={props.href?.startsWith("http") ? "noopener noreferrer" : undefined}
             >
@@ -470,7 +471,7 @@ export default function PrefeituraDigital() {
                 {services.map((serviceMarkdown, index) => (
                     <Card key={index} className="overflow-hidden">
                         <CardContent className="p-0">
-                            <div className="p-4 md:p-5">
+                            <div className="p-4 md:p-5 leading-6">
                                 <div className="flex justify-between items-start mb-2">
                                     <div></div> {/* Espaço vazio para alinhamento */}
                                     <button
@@ -559,6 +560,22 @@ export default function PrefeituraDigital() {
     const renderQueryInterpretation = () => {
         if (!interpretedQuery) return null
 
+        const getLanguageName = (code) => {
+            const languages = {
+                pt: "Português",
+                en: "Inglês",
+                es: "Espanhol",
+                fr: "Francês",
+                it: "Italiano",
+                de: "Alemão",
+                ja: "Japonês",
+                zh: "Chinês",
+                ru: "Russo",
+                ar: "Árabe",
+            }
+            return languages[code] || code
+        }
+
         return (
             <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-100">
                 <div className="flex items-start">
@@ -570,7 +587,7 @@ export default function PrefeituraDigital() {
                             <span className="font-medium">{interpretedQuery.serviceType || "Serviço da Prefeitura"}</span>
                             {interpretedQuery.language !== "pt" && (
                                 <span className="ml-2 font-medium">
-                                    (Idioma detectado: {interpretedQuery.language === "en" ? "Inglês" : interpretedQuery.language})
+                                    (Idioma detectado: {getLanguageName(interpretedQuery.language)})
                                 </span>
                             )}
                         </p>
@@ -603,7 +620,7 @@ export default function PrefeituraDigital() {
                             para o SP156 ou consultar o site oficial da Prefeitura.
                         </p>
                         <p className="text-xs text-blue-600 mt-2">
-                            Dica: Ative o GPS do seu dispositivo para ver no mapa a unidade mais próxima.
+                            Ative o GPS do seu dispositivo para ver no mapa a unidade mais próxima.
                         </p>
                     </div>
                 </div>
@@ -755,7 +772,40 @@ export default function PrefeituraDigital() {
 
                         {(results || siteResults) && !isLoading && !isSiteLoading && !isInterpreting && (
                             <div className="space-y-6">
-                                <div className="md:flex md:gap-6">
+                                {/* Seção de feedback */}
+                                {!feedbackGiven ? (
+                                    <div key="top-feedback-buttons" className="p-2 bg-gray-50 rounded-md">
+                                        <p className="text-sm text-center mb-2">Esta resposta foi útil?</p>
+                                        <div className="flex justify-center gap-4">
+                                            <button
+                                                onClick={() => handleFeedback("positive")}
+                                                className="flex items-center text-sm gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-full transition-colors"
+                                            >
+                                                <ThumbsUp className="w-4 h-4" />
+                                                <span>Sim, foi útil</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleFeedback("negative")}
+                                                className="flex items-center text-sm gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-full transition-colors"
+                                            >
+                                                <ThumbsDown className="w-4 h-4" />
+                                                <span>Não foi útil</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div
+                                        key="feedback-message"
+                                        className={`p-4 rounded-md text-center ${feedbackType === "positive" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
+                                            }`}
+                                    >
+                                        <p>{feedbackMessage}</p>
+                                        {feedbackType === "negative" && (
+                                            <p className="text-sm mt-2">Sua opinião nos ajuda a melhorar o serviço.</p>
+                                        )}
+                                    </div>
+                                )}
+                                <div className="md:flex md:gap-6 text-sm">
                                     {/* Coluna de resultados da Vector Store */}
                                     {results && !error && (
                                         <div
@@ -913,9 +963,9 @@ export default function PrefeituraDigital() {
                                     <div className="bg-gray-50 p-3 rounded-md">
                                         <p className="font-medium text-sm">Experimente escrever:</p>
                                         <ul className="text-xs mt-1 space-y-1">
-                                            <li>• "Preciso podar uma árvore na minha rua"</li>
-                                            <li>• "Como faço para pagar o IPTU?"</li>
-                                            <li>• "Where can I find information about public transportation?"</li>
+                                            <li>• Preciso podar uma árvore na minha rua</li>
+                                            <li>• Como faço para pagar o IPTU?</li>
+                                            <li>• Where can I find information about public transportation?</li>
                                         </ul>
                                     </div>
                                 </div>

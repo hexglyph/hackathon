@@ -1,8 +1,14 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react"
+import { Facebook, Twitter, Instagram, Linkedin, Youtube, HelpCircle } from "lucide-react"
+import { useState } from "react"
+import HelpModal from "@/components/help-modal"
 
 export default function Header() {
+    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
+
     return (
         <header className="shadow-lg shadow-black/10 bg-white mb-10">
             <div className="top-bar py-1 px-4 bg-secondary text-secondary-foreground">
@@ -170,9 +176,19 @@ export default function Header() {
                         <Link href="/noticias" className="font-medium">
                             Notícias
                         </Link>
+
+                        <button
+                            onClick={() => setIsHelpModalOpen(true)}
+                            className="ml-4 p-2 rounded-full bg-background hover:bg-orange-200 text-secondary transition-colors"
+                            aria-label="Ajuda sobre Prefeitura IA"
+                        >
+                            <HelpCircle className="w-5 h-5" />
+                        </button>
                     </nav>
                 </div>
             </div>
+
+            <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
         </header>
     )
 }

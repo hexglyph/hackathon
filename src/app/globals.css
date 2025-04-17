@@ -136,7 +136,6 @@ body {
 }
 
 .top-bar {
-  background-color: var(--color-primary);
   color: white;
   font-size: 0.8rem;
 }

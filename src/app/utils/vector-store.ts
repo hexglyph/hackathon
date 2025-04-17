@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+
 import { AzureOpenAI } from "openai"
 
 // Cliente Azure OpenAI para gerenciamento do vector store

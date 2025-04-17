@@ -11,8 +11,40 @@ export async function POST(request: NextRequest) {
         }
 
         // Determinar o sistema prompt baseado no idioma alvo
-        const systemPrompt = `Você é um tradutor especializado. Traduza o seguinte texto do português para o ${targetLanguage === "en" ? "inglês" : targetLanguage === "es" ? "espanhol" : targetLanguage
-            }. 
+        let languageName = "inglês"
+        switch (targetLanguage) {
+            case "en":
+                languageName = "inglês"
+                break
+            case "es":
+                languageName = "espanhol"
+                break
+            case "fr":
+                languageName = "francês"
+                break
+            case "it":
+                languageName = "italiano"
+                break
+            case "de":
+                languageName = "alemão"
+                break
+            case "ja":
+                languageName = "japonês"
+                break
+            case "zh":
+                languageName = "chinês"
+                break
+            case "ru":
+                languageName = "russo"
+                break
+            case "ar":
+                languageName = "árabe"
+                break
+            default:
+                languageName = targetLanguage
+        }
+
+        const systemPrompt = `Você é um tradutor especializado. Traduza o seguinte texto do português para o ${languageName}. 
     Mantenha todas as formatações Markdown, links e estrutura original. 
     Não traduza nomes próprios, URLs ou códigos. 
     Mantenha os marcadores especiais como [SOLICITAR_NORMAL] e [SOLICITAR_ANONIMO].`
