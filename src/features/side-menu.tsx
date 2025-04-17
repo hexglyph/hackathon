@@ -1,16 +1,27 @@
 import Link from "next/link"
-import { Search, BusFront, Phone, Map, Home, HelpCircle, CircleDollarSign, HandHeart } from "lucide-react"
+import { Search, BusFront, Phone, Map, Home, CircleDollarSign, HandHeart } from "lucide-react"
 
 export default function SideMenu() {
     const menuItems = [
-        { icon: <Search className="w-5 h-5" />, label: "Buscar", href: "/busca" },
-        { icon: <BusFront className="w-5 h-5" />, label: "Bilhete Unico", href: "https://bilheteunico.sptrans.com.br/" },
-        { icon: <Map className="w-5 h-5" />, label: "Mapa de Servicos", href: "https://geosampa.prefeitura.sp.gov.br/PaginasPublicas/_SBC.aspx" },
-        { icon: <Home className="w-5 h-5" />, label: "IPTU", href: "https://capital.sp.gov.br/web/iptu2025" },
+        { icon: <Search className="w-5 h-5" />, label: "Search", href: "/busca" },
+        { icon: <BusFront className="w-5 h-5" />, label: "Transport Card", href: "https://bilheteunico.sptrans.com.br/" },
+        {
+            icon: <Map className="w-5 h-5" />,
+            label: "Services Map",
+            href: "https://geosampa.prefeitura.sp.gov.br/PaginasPublicas/_SBC.aspx",
+        },
+        { icon: <Home className="w-5 h-5" />, label: "Property Tax", href: "https://capital.sp.gov.br/web/iptu2025" },
         { icon: <Phone className="w-5 h-5" />, label: "SP 156", href: "/sp156" },
-        { icon: <CircleDollarSign className="w-5 h-5" />, label: "Divida Ativa", href: "https://dividaativa.prefeitura.sp.gov.br/" },
-        { icon: <HandHeart className="w-5 h-5" />, label: "Saude", href: "https://www.prefeitura.sp.gov.br/cidade/secretarias/saude/vigilancia_em_saude/" },
-
+        {
+            icon: <CircleDollarSign className="w-5 h-5" />,
+            label: "Active Debt",
+            href: "https://dividaativa.prefeitura.sp.gov.br/",
+        },
+        {
+            icon: <HandHeart className="w-5 h-5" />,
+            label: "Health",
+            href: "https://www.prefeitura.sp.gov.br/cidade/secretarias/saude/vigilancia_em_saude/",
+        },
     ]
 
     return (
@@ -28,4 +39,3 @@ export default function SideMenu() {
         </div>
     )
 }
-

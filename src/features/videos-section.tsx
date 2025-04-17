@@ -18,11 +18,11 @@ export default function VideosSection() {
     ]
 
     return (
-        <div className="hidden md:block mt-8">
+        <div className="mt-8">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="section-title text-xl">VÍDEOS</h2>
+                <h2 className="section-title text-xl">VIDEOS</h2>
                 <Link href="/videos" className="text-sm text-orange-600 hover:underline flex items-center">
-                    Mais Vídeos
+                    More Videos
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="16"
@@ -49,7 +49,7 @@ export default function VideosSection() {
                                     src={video.thumbnail || "/placeholder.svg?height=200&width=400"}
                                     alt={video.title}
                                     fill
-                                    className="object-cover opacity-80 hidden"
+                                    className="object-cover opacity-80"
                                 />
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="bg-red-600 rounded-full p-3">
@@ -79,4 +79,3 @@ export default function VideosSection() {
         </div>
     )
 }
-

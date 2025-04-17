@@ -11,10 +11,10 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
 
     return (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white">
-                    <h2 className="text-xl font-bold text-secondary">Prefeitura IA - Features</h2>
-                    <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100" aria-label="Fechar">
+                    <h2 className="text-xl font-bold text-orange-600">City Hall AI - Features</h2>
+                    <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100" aria-label="Close">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -23,67 +23,86 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     <div className="space-y-6">
                         <div>
                             <h3 className="text-lg font-semibold mb-2 flex items-center">
-                                <Search className="w-5 h-5 mr-2 text-secondary" />
-                                Busca Inteligente
+                                <Search className="w-5 h-5 mr-2 text-orange-500" />
+                                Smart Search
                             </h3>
                             <p className="text-gray-700">
-                                Digite sua dúvida em linguagem natural para encontrar informações sobre serviços da Prefeitura de São
-                                Paulo. Exemplo: Como faço para solicitar poda de árvore? ou Preciso da segunda via do IPTU.
+                                Type your question in natural language to find information about São Paulo City Hall services. Example:
+                                "How do I request tree pruning?" or "I need a copy of my property tax bill".
                             </p>
                         </div>
 
                         <div>
                             <h3 className="text-lg font-semibold mb-2 flex items-center">
-                                <Mic className="w-5 h-5 mr-2 text-secondary" />
-                                Reconhecimento de Voz
+                                <Mic className="w-5 h-5 mr-2 text-orange-500" />
+                                Voice Recognition
                             </h3>
                             <p className="text-gray-700">
-                                Clique no ícone do microfone para fazer sua pergunta por voz. O sistema reconhecerá automaticamente o
-                                que você disse e buscará as informações.
+                                Click on the microphone icon to ask your question by voice. The system will automatically recognize what
+                                you said and search for the information.
                             </p>
                         </div>
 
                         <div>
                             <h3 className="text-lg font-semibold mb-2 flex items-center">
-                                <Globe className="w-5 h-5 mr-2 text-secondary" />
-                                Suporte a Múltiplos Idiomas
+                                <Globe className="w-5 h-5 mr-2 text-orange-500" />
+                                Multiple Language Support
                             </h3>
                             <p className="text-gray-700">
-                                Faça perguntas em qualquer idioma (português, inglês, espanhol, etc.) e receba respostas no mesmo idioma
-                                automaticamente.
+                                Ask questions in any language (Portuguese, English, Spanish, etc.) and receive answers in the same
+                                language automatically.
                             </p>
                         </div>
 
                         <div>
                             <h3 className="text-lg font-semibold mb-2 flex items-center">
-                                <Volume2 className="w-5 h-5 mr-2 text-secondary" />
-                                Síntese de Voz
+                                <Volume2 className="w-5 h-5 mr-2 text-orange-500" />
+                                Text-to-Speech
                             </h3>
                             <p className="text-gray-700">
-                                Clique no ícone de alto-falante para ouvir a resposta em voz alta, ideal para pessoas com dificuldades
-                                visuais ou para quando você estiver em movimento.
+                                Click on the speaker icon to hear the answer out loud, ideal for people with visual impairments or when
+                                you're on the move.
                             </p>
                         </div>
 
                         <div>
                             <h3 className="text-lg font-semibold mb-2 flex items-center">
-                                <ThumbsUp className="w-5 h-5 mr-2 text-secondary" />
+                                <MapPin className="w-5 h-5 mr-2 text-orange-500" />
+                                Service Location
+                            </h3>
+                            <p className="text-gray-700">
+                                For questions about service locations (e.g., "Where is the nearest health center?"), the system can show
+                                information about the closest locations.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 className="text-lg font-semibold mb-2 flex items-center">
+                                <ThumbsUp className="w-5 h-5 mr-2 text-orange-500" />
                                 Feedback
                             </h3>
                             <p className="text-gray-700">
-                                Após receber uma resposta, você pode avaliar se ela foi útil ou não, ajudando a melhorar o sistema para
-                                todos os usuários.
+                                After receiving an answer, you can rate whether it was helpful or not, helping to improve the system for
+                                all users.
                             </p>
                         </div>
+                    </div>
+
+                    <div className="mt-8 p-4 bg-orange-50 rounded-lg border border-orange-100">
+                        <h3 className="font-semibold text-orange-700 mb-2">Tip</h3>
+                        <p className="text-orange-700 text-sm">
+                            For best results, be specific in your question. For example, instead of just asking "Property tax", try
+                            "How do I get a copy of my property tax bill?" or "When is the 2024 property tax due?".
+                        </p>
                     </div>
                 </div>
 
                 <div className="p-4 border-t bg-gray-50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-secondary text-white rounded-md hover:bg-orange-600 transition-colors"
+                        className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
                     >
-                        Entendi
+                        Got it
                     </button>
                 </div>
             </div>

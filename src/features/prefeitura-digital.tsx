@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unused-expressions */
 // @ts-nocheck
 "use client"
 
@@ -26,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 // Corrigir o caminho de importação
 import LocationMap from "@/features/location-map"
 import { speechToText, textToSpeech } from "@/lib/speech-service"
+import { Camera, Upload, X } from "lucide-react"
 
 export default function PrefeituraDigital() {
     // Adicionar o estilo ao documento
@@ -80,6 +80,12 @@ export default function PrefeituraDigital() {
     const [feedbackGiven, setFeedbackGiven] = useState(false)
     const [feedbackType, setFeedbackType] = useState<"positive" | "negative" | null>(null)
     const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
+
+    const [selectedImage, setSelectedImage] = useState<File | null>(null)
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const [isAnalyzingImage, setIsAnalyzingImage] = useState(false)
+    const [imageAnalysis, setImageAnalysis] = useState<any | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Referência para o formulário
     const formRef = useRef<HTMLFormElement>(null)
@@ -201,11 +207,11 @@ export default function PrefeituraDigital() {
 
                 // Se já temos a localização do usuário, mostrar o mapa
                 /*if (userLocation) {
-                    setShowMap(true)
-                } else {
-                    // Se não temos a localização, solicitar
-                    shareLocation()
-                }*/
+                            setShowMap(true)
+                        } else {
+                            // Se não temos a localização, solicitar
+                            shareLocation()
+                        }*/
                 setShowMap(false)
             } else {
                 setIsLocationQuery(false)
@@ -229,7 +235,7 @@ export default function PrefeituraDigital() {
         }
     }
 
-    // Modificar a função handleSearch para usar a interpretação da consulta
+    // Modificar a função handleSearch para passar o idioma detectado para a API
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!query.trim()) return
@@ -262,6 +268,7 @@ export default function PrefeituraDigital() {
         searchSite(siteSearchQuery)
     }
 
+    // Modificar a função searchVectorStore para passar o idioma para a API
     const searchVectorStore = async (processedQuery: string, detectedLanguage = "pt") => {
         setIsLoading(true)
         setError(null)
@@ -411,7 +418,7 @@ export default function PrefeituraDigital() {
             return (
                 <a
                     {...props}
-                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 mb-2 rounded-md text-sm no-underline transition-colors"
+                    className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-3 rounded-md text-sm no-underline transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -423,7 +430,7 @@ export default function PrefeituraDigital() {
             return (
                 <a
                     {...props}
-                    className="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 mb-2 rounded-md text-sm no-underline transition-colors"
+                    className="inline-flex items-center bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-3 rounded-md text-sm no-underline transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -436,7 +443,7 @@ export default function PrefeituraDigital() {
         return (
             <a
                 {...props}
-                className="text-orange-600 my-2 hover:underline"
+                className="text-orange-600 hover:underline"
                 target={props.href?.startsWith("http") ? "_blank" : undefined}
                 rel={props.href?.startsWith("http") ? "noopener noreferrer" : undefined}
             >
@@ -471,7 +478,7 @@ export default function PrefeituraDigital() {
                 {services.map((serviceMarkdown, index) => (
                     <Card key={index} className="overflow-hidden">
                         <CardContent className="p-0">
-                            <div className="p-4 md:p-5 leading-6">
+                            <div className="p-4 md:p-5">
                                 <div className="flex justify-between items-start mb-2">
                                     <div></div> {/* Espaço vazio para alinhamento */}
                                     <button
@@ -557,9 +564,11 @@ export default function PrefeituraDigital() {
     }
 
     // Renderizar informações sobre a interpretação da consulta
+    // Melhorar a exibição do idioma detectado na interface
     const renderQueryInterpretation = () => {
         if (!interpretedQuery) return null
 
+        // Mapear códigos de idioma para nomes legíveis
         const getLanguageName = (code) => {
             const languages = {
                 pt: "Português",
@@ -620,7 +629,7 @@ export default function PrefeituraDigital() {
                             para o SP156 ou consultar o site oficial da Prefeitura.
                         </p>
                         <p className="text-xs text-blue-600 mt-2">
-                            Ative o GPS do seu dispositivo para ver no mapa a unidade mais próxima.
+                            Dica: Ative o GPS do seu dispositivo para ver no mapa a unidade mais próxima.
                         </p>
                     </div>
                 </div>
@@ -646,6 +655,90 @@ export default function PrefeituraDigital() {
         [query],
     )
 
+    // Function to handle image selection
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0]
+            setSelectedImage(file)
+
+            // Create a preview URL
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                setImagePreview(e.target?.result as string)
+            }
+            reader.readAsDataURL(file)
+
+            // Expand the component
+            expandComponent()
+        }
+    }
+
+    // Function to clear the selected image
+    const clearSelectedImage = () => {
+        setSelectedImage(null)
+        setImagePreview(null)
+        setImageAnalysis(null)
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""
+        }
+    }
+
+    // Function to analyze the image
+    const analyzeImage = async () => {
+        if (!selectedImage) return
+
+        setIsAnalyzingImage(true)
+        setImageAnalysis(null)
+        setError(null)
+
+        try {
+            const formData = new FormData()
+            formData.append("image", selectedImage)
+
+            const response = await fetch("/api/analyze-image", {
+                method: "POST",
+                body: formData,
+            })
+
+            if (!response.ok) {
+                throw new Error("Failed to analyze image")
+            }
+
+            const data = await response.json()
+            setImageAnalysis(data)
+
+            // If there's a valid search query, use it to search for services
+            if (data.searchQuery && data.problem !== "No clear municipal issue identified") {
+                setQuery(data.searchQuery)
+                // Perform the search with the generated query
+                const interpreted = await interpretQuery(data.searchQuery)
+                searchVectorStore(interpreted.interpretedQuery, interpreted.language)
+                searchSite(interpreted.interpretedQuery)
+            }
+        } catch (err) {
+            console.error("Error analyzing image:", err)
+            setError("Failed to analyze the image. Please try again.")
+        } finally {
+            setIsAnalyzingImage(false)
+        }
+    }
+
+    // Function to trigger file input click
+    const triggerFileInput = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click()
+        }
+    }
+
+    // Function to open camera on mobile devices
+    const openCamera = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.accept = "image/*"
+            fileInputRef.current.capture = "environment"
+            fileInputRef.current.click()
+        }
+    }
+
     // Modificar o JSX de retorno para implementar a expansão/contração
     return (
         <div
@@ -660,17 +753,24 @@ export default function PrefeituraDigital() {
                     className={`font-bold transition-all duration-300 ${isExpanded ? "text-2xl md:text-3xl" : "text-lg md:text-xl"
                         }`}
                 >
-                    Prefeitura IA
+                    City Hall AI
                 </h2>
                 {isExpanded && (
                     <p className="text-lg transition-opacity duration-300 opacity-100">
-                        Encontre rapidamente os serviços da Prefeitura de São Paulo.
+                        Quickly find São Paulo City Hall services and information.
                     </p>
                 )}
             </div>
 
-            <div className={`transition-all duration-300 ${isExpanded ? "p-6 border-b border-r border-l border-secondary rounded-b-md shadow-lg shadow-secondary" : "px-4 py-3"}`}>
-                <form ref={formRef} onSubmit={handleSearch} className={`${isExpanded ? "mb-6 bg-transparent" : "mb-0"}`}>
+            <div
+                className={`transition-all duration-300 ${isExpanded ? "p-6 border-b border-r border-l border-secondary rounded-b-md shadow-lg shadow-secondary" : "px-4 py-3"}`}
+            >
+                <form
+                    ref={formRef}
+                    onSubmit={handleSearch}
+                    className={`${isExpanded ? "mb-6 bg-transparent" : "mb-0"}`}
+                    encType="multipart/form-data"
+                >
                     <div className={`relative ${!isExpanded ? "" : ""}`}>
                         <input
                             type="text"
@@ -678,7 +778,7 @@ export default function PrefeituraDigital() {
                             onChange={(e) => setQuery(e.target.value)}
                             onFocus={expandComponent}
                             onClick={expandComponent}
-                            placeholder="Descreva o que você está procurando - Exemplo: poda de árvore, IPTU, calçada quebrada, onde tem uma UBS perto de mim"
+                            placeholder="Describe what you're looking for - Example: tree pruning, property tax, broken sidewalk, where is the nearest health center"
                             className={`w-full h-16 bg-white placeholder:text-foreground/50 ${isExpanded
                                 ? "p-4 pr-24 border-gray-300 rounded-md"
                                 : "py-3 pr-24 pl-4 border-transparent rounded-md text-sm"
@@ -717,10 +817,128 @@ export default function PrefeituraDigital() {
                     {isExpanded && (
                         <div className="mt-2 text-sm text-gray-600 flex items-center">
                             <Info className="w-4 h-4 mr-1" />
-                            Descreva o serviço que você precisa em linguagem simples, em qualquer idioma, ou use o microfone para falar
+                            Describe the service you need in simple language, in any language, or use the microphone to speak
                         </div>
                     )}
                 </form>
+
+                {/* Hidden file input */}
+                <input type="file" ref={fileInputRef} onChange={handleImageSelect} accept="image/*" className="hidden" />
+
+                {/* Image upload buttons */}
+                {isExpanded && !imagePreview && (
+                    <div className="flex items-center justify-center gap-4 mt-4 mb-6">
+                        <button
+                            type="button"
+                            onClick={triggerFileInput}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700"
+                        >
+                            <Upload className="w-4 h-4" />
+                            <span>Upload Image</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={openCamera}
+                            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700"
+                        >
+                            <Camera className="w-4 h-4" />
+                            <span>Take Photo</span>
+                        </button>
+                    </div>
+                )}
+
+                {/* Image preview and analysis */}
+                {isExpanded && imagePreview && (
+                    <div className="mt-4 mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div className="flex justify-between items-start mb-4">
+                            <h3 className="font-bold text-lg">Image Analysis</h3>
+                            <button
+                                onClick={clearSelectedImage}
+                                className="p-1 rounded-full bg-gray-200 hover:bg-gray-300"
+                                aria-label="Clear image"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="md:w-1/3">
+                                <div className="relative rounded-md overflow-hidden border border-gray-300 aspect-square">
+                                    <img
+                                        src={imagePreview || "/placeholder.svg"}
+                                        alt="Selected image"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+
+                                {!imageAnalysis && !isAnalyzingImage && (
+                                    <button
+                                        onClick={analyzeImage}
+                                        className="w-full mt-3 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md"
+                                    >
+                                        Analyze Image
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="md:w-2/3">
+                                {isAnalyzingImage ? (
+                                    <div className="flex flex-col items-center justify-center h-full py-8">
+                                        <Loader2 className="w-8 h-8 animate-spin text-orange-500 mb-2" />
+                                        <p className="text-gray-600">Analyzing image...</p>
+                                    </div>
+                                ) : imageAnalysis ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <h4 className="font-semibold text-gray-700">Problem Identified:</h4>
+                                            <p className="text-lg font-bold text-orange-600">{imageAnalysis.problem}</p>
+                                        </div>
+
+                                        {imageAnalysis.serviceType && (
+                                            <div>
+                                                <h4 className="font-semibold text-gray-700">Service Needed:</h4>
+                                                <p>{imageAnalysis.serviceType}</p>
+                                            </div>
+                                        )}
+
+                                        {imageAnalysis.urgency && imageAnalysis.urgency !== "none" && (
+                                            <div>
+                                                <h4 className="font-semibold text-gray-700">Urgency:</h4>
+                                                <span
+                                                    className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${imageAnalysis.urgency === "high"
+                                                        ? "bg-red-100 text-red-700"
+                                                        : imageAnalysis.urgency === "medium"
+                                                            ? "bg-yellow-100 text-yellow-700"
+                                                            : "bg-green-100 text-green-700"
+                                                        }`}
+                                                >
+                                                    {imageAnalysis.urgency.charAt(0).toUpperCase() + imageAnalysis.urgency.slice(1)}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <h4 className="font-semibold text-gray-700">Details:</h4>
+                                            <p className="text-sm text-gray-600">{imageAnalysis.details}</p>
+                                        </div>
+
+                                        {imageAnalysis.searchQuery && imageAnalysis.problem !== "No clear municipal issue identified" && (
+                                            <div className="pt-3 border-t border-gray-200">
+                                                <p className="text-sm text-gray-500">
+                                                    Searching for relevant services based on the analysis...
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-full py-8 text-gray-500">
+                                        <p>Click "Analyze Image" to identify urban issues and find relevant city services.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Mostrar informações sobre a interpretação da consulta */}
                 {isExpanded &&
@@ -730,10 +948,7 @@ export default function PrefeituraDigital() {
                     !isSiteLoading &&
                     renderQueryInterpretation()}
 
-                {isExpanded &&
-                    isLocationQuery &&
-                    !showMap &&
-                    renderLocationInfo()}
+                {isExpanded && isLocationQuery && !showMap && renderLocationInfo()}
 
                 {/* Exibir o mapa quando necessário */}
                 {isExpanded && showMap && (
@@ -772,40 +987,7 @@ export default function PrefeituraDigital() {
 
                         {(results || siteResults) && !isLoading && !isSiteLoading && !isInterpreting && (
                             <div className="space-y-6">
-                                {/* Seção de feedback */}
-                                {!feedbackGiven ? (
-                                    <div key="top-feedback-buttons" className="p-2 bg-gray-50 rounded-md">
-                                        <p className="text-sm text-center mb-2">Esta resposta foi útil?</p>
-                                        <div className="flex justify-center gap-4">
-                                            <button
-                                                onClick={() => handleFeedback("positive")}
-                                                className="flex items-center text-sm gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-full transition-colors"
-                                            >
-                                                <ThumbsUp className="w-4 h-4" />
-                                                <span>Sim, foi útil</span>
-                                            </button>
-                                            <button
-                                                onClick={() => handleFeedback("negative")}
-                                                className="flex items-center text-sm gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-full transition-colors"
-                                            >
-                                                <ThumbsDown className="w-4 h-4" />
-                                                <span>Não foi útil</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div
-                                        key="feedback-message"
-                                        className={`p-4 rounded-md text-center ${feedbackType === "positive" ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700"
-                                            }`}
-                                    >
-                                        <p>{feedbackMessage}</p>
-                                        {feedbackType === "negative" && (
-                                            <p className="text-sm mt-2">Sua opinião nos ajuda a melhorar o serviço.</p>
-                                        )}
-                                    </div>
-                                )}
-                                <div className="md:flex md:gap-6 text-sm">
+                                <div className="md:flex md:gap-6">
                                     {/* Coluna de resultados da Vector Store */}
                                     {results && !error && (
                                         <div
@@ -813,7 +995,7 @@ export default function PrefeituraDigital() {
                                             className={`p-4 rounded-md ${isOutOfScope ? "bg-yellow-50 border border-yellow-200" : "bg-gray-50"} md:w-2/3`}
                                         >
                                             <div className="flex justify-between items-center mb-4">
-                                                <h3 className="font-bold text-lg">Serviços Encontrados</h3>
+                                                <h3 className="font-bold text-lg">Services Found</h3>
                                                 {results && (
                                                     <button
                                                         onClick={() => speakText(results)}
@@ -857,7 +1039,7 @@ export default function PrefeituraDigital() {
                                     {/* Coluna de resultados do site */}
                                     {siteResults && !siteError && (
                                         <div key="site-results" className="p-4 rounded-md bg-gray-50 md:w-1/3">
-                                            <h3 className="font-bold text-lg mb-2">Resultados do Portal</h3>
+                                            <h3 className="font-bold text-lg mb-2">Portal Results</h3>
 
                                             {renderSiteResults()}
 
@@ -874,21 +1056,21 @@ export default function PrefeituraDigital() {
                                 {/* Seção de feedback */}
                                 {!feedbackGiven ? (
                                     <div key="feedback-buttons" className="p-4 bg-gray-50 rounded-md">
-                                        <p className="text-sm text-center mb-3">Esta resposta foi útil?</p>
+                                        <p className="text-sm text-center mb-3">Was this response helpful?</p>
                                         <div className="flex justify-center gap-4">
                                             <button
                                                 onClick={() => handleFeedback("positive")}
                                                 className="flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-full transition-colors"
                                             >
                                                 <ThumbsUp className="w-5 h-5" />
-                                                <span>Sim, foi útil</span>
+                                                <span>Yes, it was helpful</span>
                                             </button>
                                             <button
                                                 onClick={() => handleFeedback("negative")}
                                                 className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded-full transition-colors"
                                             >
                                                 <ThumbsDown className="w-5 h-5" />
-                                                <span>Não foi útil</span>
+                                                <span>Not helpful</span>
                                             </button>
                                         </div>
                                     </div>
@@ -941,31 +1123,34 @@ export default function PrefeituraDigital() {
                         {!results && !siteResults && !isLoading && !isSiteLoading && !isInterpreting && !error && !siteError && (
                             <div className="text-center py-8 text-gray-500">
                                 <Search className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                <p>Digite sua dúvida ou use o microfone para buscar serviços e informações da Prefeitura de São Paulo.</p>
+                                <p>
+                                    Type your question or use the microphone to search for services and information from São Paulo City
+                                    Hall.
+                                </p>
                                 <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 max-w-2xl mx-auto text-left">
                                     <div className="bg-gray-50 p-3 rounded-md">
-                                        <p className="font-medium text-sm">Exemplos de buscas:</p>
+                                        <p className="font-medium text-sm">Search examples:</p>
                                         <ul className="text-xs mt-1 space-y-1">
-                                            <li>• Árvore precisa de poda</li>
-                                            <li>• Segunda via do IPTU</li>
-                                            <li>• Calçada quebrada</li>
+                                            <li>• Tree needs pruning</li>
+                                            <li>• Property tax copy</li>
+                                            <li>• Broken sidewalk</li>
                                         </ul>
                                     </div>
                                     <div className="bg-gray-50 p-3 rounded-md">
-                                        <p className="font-medium text-sm">Serviços populares:</p>
+                                        <p className="font-medium text-sm">Popular services:</p>
                                         <ul className="text-xs mt-1 space-y-1">
                                             <li>• Descomplica</li>
-                                            <li>• Reparos em vias públicas</li>
-                                            <li>• Matrícula escolar</li>
-                                            <li>• Bilhete Único</li>
+                                            <li>• Street repairs</li>
+                                            <li>• School enrollment</li>
+                                            <li>• Public transportation card</li>
                                         </ul>
                                     </div>
                                     <div className="bg-gray-50 p-3 rounded-md">
-                                        <p className="font-medium text-sm">Experimente escrever:</p>
+                                        <p className="font-medium text-sm">Try writing:</p>
                                         <ul className="text-xs mt-1 space-y-1">
-                                            <li>• Preciso podar uma árvore na minha rua</li>
-                                            <li>• Como faço para pagar o IPTU?</li>
-                                            <li>• Where can I find information about public transportation?</li>
+                                            <li>• "I need to prune a tree on my street"</li>
+                                            <li>• "How do I pay my property tax?"</li>
+                                            <li>• "Where can I find information about public transportation?"</li>
                                         </ul>
                                     </div>
                                 </div>

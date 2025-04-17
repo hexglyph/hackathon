@@ -5,79 +5,79 @@ import { Facebook, Twitter, Instagram, Linkedin, Youtube } from "lucide-react"
 export default function Footer() {
     const footerLinks = [
         {
-            title: "Prefeitura de São Paulo",
+            title: "São Paulo City Hall",
             links: [
-                { label: "Agenda do prefeito", href: "/agenda-prefeito" },
-                { label: "Dia do Prefeito", href: "/dia-prefeito" },
-                { label: "Conheça a equipe de governo", href: "/equipe-governo" },
-                { label: "Subprefeituras", href: "/subprefeituras" },
-                { label: "Secretarias", href: "/secretarias" },
-                { label: "Órgãos e Autarquias", href: "/orgaos" },
-                { label: "Lei", href: "/lei" },
+                { label: "Mayor's agenda", href: "/agenda-prefeito" },
+                { label: "Mayor's Day", href: "/dia-prefeito" },
+                { label: "Meet the government team", href: "/equipe-governo" },
+                { label: "Regional Offices", href: "/subprefeituras" },
+                { label: "Departments", href: "/secretarias" },
+                { label: "Agencies and Authorities", href: "/orgaos" },
+                { label: "Law", href: "/lei" },
             ],
         },
         {
-            title: "Serviços para o Cidadão",
+            title: "Services for Citizens",
             links: [
-                { label: "Animais", href: "/servicos/animais" },
-                { label: "Cultura e Economia Criativa", href: "/servicos/cultura" },
-                { label: "Educação", href: "/servicos/educacao" },
-                { label: "Esportes e Lazer", href: "/servicos/esportes" },
-                { label: "Família e Assistência Social", href: "/servicos/familia" },
-                { label: "Finanças", href: "/servicos/financas" },
-                { label: "Mobilidade Urbana e Transporte", href: "/servicos/mobilidade" },
-                { label: "Rua e Bairro", href: "/servicos/rua-bairro" },
-                { label: "Saúde e Bem-estar", href: "/servicos/saude" },
-                { label: "Segurança", href: "/servicos/seguranca" },
-                { label: "Trabalho", href: "/servicos/trabalho" },
+                { label: "Animals", href: "/servicos/animais" },
+                { label: "Culture and Creative Economy", href: "/servicos/cultura" },
+                { label: "Education", href: "/servicos/educacao" },
+                { label: "Sports and Leisure", href: "/servicos/esportes" },
+                { label: "Family and Social Assistance", href: "/servicos/familia" },
+                { label: "Finance", href: "/servicos/financas" },
+                { label: "Urban Mobility and Transportation", href: "/servicos/mobilidade" },
+                { label: "Street and Neighborhood", href: "/servicos/rua-bairro" },
+                { label: "Health and Wellness", href: "/servicos/saude" },
+                { label: "Security", href: "/servicos/seguranca" },
+                { label: "Work", href: "/servicos/trabalho" },
             ],
         },
         {
-            title: "Serviços para Empresas",
+            title: "Services for Businesses",
             links: [
-                { label: "Abertura de Empresas", href: "/empresas/abertura" },
-                { label: "Alvará, Certificados e Licenças", href: "/empresas/alvara" },
-                { label: "Cadastros", href: "/empresas/cadastros" },
-                { label: "Compras, Licitações e Normas", href: "/empresas/compras" },
-                { label: "Empreendedorismo", href: "/empresas/empreendedorismo" },
-                { label: "Impostos e Taxas", href: "/empresas/impostos" },
-                { label: "Legislação", href: "/empresas/legislacao" },
-                { label: "Licitações e Fornecedores", href: "/empresas/licitacoes" },
-                { label: "Nota do Milhão", href: "/empresas/nota-milhao" },
-                { label: "Organizações", href: "/empresas/organizacoes" },
-                { label: "Programas e Benefícios", href: "/empresas/programas" },
+                { label: "Business Opening", href: "/empresas/abertura" },
+                { label: "Permits, Certificates and Licenses", href: "/empresas/alvara" },
+                { label: "Registrations", href: "/empresas/cadastros" },
+                { label: "Purchases, Bids and Standards", href: "/empresas/compras" },
+                { label: "Entrepreneurship", href: "/empresas/empreendedorismo" },
+                { label: "Taxes and Fees", href: "/empresas/impostos" },
+                { label: "Legislation", href: "/empresas/legislacao" },
+                { label: "Bids and Suppliers", href: "/empresas/licitacoes" },
+                { label: "Million Note", href: "/empresas/nota-milhao" },
+                { label: "Organizations", href: "/empresas/organizacoes" },
+                { label: "Programs and Benefits", href: "/empresas/programas" },
             ],
         },
         {
-            title: "Serviços para o Servidor",
+            title: "Services for Civil Servants",
             links: [
-                { label: "Atendimento", href: "/servidor/atendimento" },
-                { label: "Benefícios", href: "/servidor/beneficios" },
-                { label: "Carreira", href: "/servidor/carreira" },
-                { label: "Comunicação e Publicações", href: "/servidor/comunicacao" },
-                { label: "Eventos para o Servidor", href: "/servidor/eventos" },
-                { label: "Gestão de Pessoas", href: "/servidor/gestao-pessoas" },
-                { label: "Outras informações", href: "/servidor/outras-informacoes" },
-                { label: "Normas e procedimentos", href: "/servidor/normas" },
+                { label: "Service", href: "/servidor/atendimento" },
+                { label: "Benefits", href: "/servidor/beneficios" },
+                { label: "Career", href: "/servidor/carreira" },
+                { label: "Communication and Publications", href: "/servidor/comunicacao" },
+                { label: "Events for Civil Servants", href: "/servidor/eventos" },
+                { label: "People Management", href: "/servidor/gestao-pessoas" },
+                { label: "Other information", href: "/servidor/outras-informacoes" },
+                { label: "Rules and procedures", href: "/servidor/normas" },
             ],
         },
         {
-            title: "Acontece na cidade",
+            title: "Happening in the city",
             links: [
-                { label: "Notícias", href: "/noticias" },
-                { label: "Mapa de Serviços", href: "/mapa-servicos" },
-                { label: "Portal da Legislação", href: "/legislacao" },
-                { label: "Pesquisa de Processos", href: "/processos" },
-                { label: "Publicações", href: "/publicacoes" },
-                { label: "Ata de Registro de Preços", href: "/ata-registro" },
+                { label: "News", href: "/noticias" },
+                { label: "Services Map", href: "/mapa-servicos" },
+                { label: "Legislation Portal", href: "/legislacao" },
+                { label: "Process Search", href: "/processos" },
+                { label: "Publications", href: "/publicacoes" },
+                { label: "Price Registration Minutes", href: "/ata-registro" },
             ],
         },
     ]
 
     return (
-        <footer className="main-footer bg-orange-400 mt-12 pt-8 pb-4">
+        <footer className="main-footer mt-12 pt-8 pb-4">
             <div className="container mx-auto px-4">
-                <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
                     {footerLinks.map((section, index) => (
                         <div key={index}>
                             <h3 className="text-white font-bold mb-4 text-sm">{section.title}</h3>
@@ -94,12 +94,12 @@ export default function Footer() {
                     ))}
                 </div>
 
-                <div className="mt-12 hidden md:flex flex-col md:flex-row justify-between items-center border-t border-white/20 pt-6">
+                <div className="mt-12 flex flex-col md:flex-row justify-between items-center border-t border-white/20 pt-6">
                     <div className="flex items-center mb-4 md:mb-0">
                         <Image src="/logo-prefeitura-sp-white.png" alt="Prefeitura de São Paulo" width={150} height={40} />
                     </div>
 
-                    <div className="hidden md:flex space-x-4">
+                    <div className="flex space-x-4">
                         <Link
                             href="https://www.linkedin.com/company/prefeitura-de-sao-paulo"
                             aria-label="LinkedIn"
@@ -125,15 +125,14 @@ export default function Footer() {
 
                 <div className="mt-6 text-center text-white/70 text-xs">
                     <div className="mb-2">
-                        Atendimento:{" "}
+                        Service:{" "}
                         <Link href="/atendimento" className="underline">
-                            Fale com Subprefeitura
+                            Contact Regional Office
                         </Link>
                     </div>
-                    <div>© COPYRIGHT 2023, Prefeitura Municipal de São Paulo. Viaduto do Chá, 15 - Centro - CEP: 01002-020</div>
+                    <div>© COPYRIGHT 2023, São Paulo City Hall. Viaduto do Chá, 15 - Centro - CEP: 01002-020</div>
                 </div>
             </div>
         </footer>
     )
 }
-
