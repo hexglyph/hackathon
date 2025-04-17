@@ -26,6 +26,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import LocationMap from "@/features/location-map"
 import { speechToText, textToSpeech } from "@/lib/speech-service"
 import { Camera, Upload, X } from "lucide-react"
+// Add the import for DemandMaker at the top of the file with the other imports
+import DemandMaker from "@/components/demand-maker"
+// Add the import for DemandHistory at the top of the file with the other imports
+import DemandHistory from "@/components/demand-history"
+
+// Add the categories object at the top of the file with other constants
+// Add this after the other constant declarations:
+
+const categories = {
+    zeladoria: "Urban Maintenance",
+    iluminacao: "Public Lighting",
+    arvores: "Trees and Vegetation",
+    lixo: "Garbage and Waste",
+    pichacao: "Graffiti and Vandalism",
+    veiculos: "Abandoned Vehicles",
+    agua: "Water and Sewage",
+    transito: "Traffic and Signals",
+    calcadas: "Sidewalks and Accessibility",
+    outros: "Other Issues",
+}
 
 export default function PrefeituraDigital() {
     // Adicionar o estilo ao documento
@@ -86,6 +106,10 @@ export default function PrefeituraDigital() {
     const [isAnalyzingImage, setIsAnalyzingImage] = useState(false)
     const [imageAnalysis, setImageAnalysis] = useState<any | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    // Add the state for tracking submitted demands
+    // Add this after the other useState declarations
+    const [submittedDemands, setSubmittedDemands] = useState<any[]>([])
 
     // Referência para o formulário
     const formRef = useRef<HTMLFormElement>(null)
@@ -235,6 +259,27 @@ export default function PrefeituraDigital() {
         }
     }
 
+    // Add functionality to detect and display demand details when a user searches for a request code
+    // First, add a function to check if the query is a request code
+    // Add this function after the other utility functions:
+
+    // Function to check if the query is a request code
+    const isRequestCode = (query: string): boolean => {
+        // Check if the query matches the format SP-XXXXXX (where X is a digit)
+        return /^SP-\d{6}$/.test(query.trim())
+    }
+
+    // Function to find a demand by its code
+    const findDemandByCode = (code: string) => {
+        return submittedDemands.find((demand) => {
+            // Generate the same code format as in the DemandHistory component
+            const demandCode = `SP-${Math.floor(Math.random() * 1000000)
+                .toString()
+                .padStart(6, "0")}`
+            return demandCode === code
+        })
+    }
+
     // Modificar a função handleSearch para passar o idioma detectado para a API
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -253,6 +298,40 @@ export default function PrefeituraDigital() {
         setFeedbackGiven(false)
         setFeedbackType(null)
         setFeedbackMessage(null)
+
+        // Check if the query is a request code
+        if (isRequestCode(query)) {
+            // Try to find the demand with this code
+            const demand = findDemandByCode(query)
+
+            if (demand) {
+                // If found, set a special result format
+                setResults(`### Service Request: ${query}
+
+**Status:** ${demand.status === "pending" ? "Pending" : demand.status === "in_progress" ? "In Progress" : "Completed"}
+**Type:** ${demand.title}
+**Category:** ${demand.category ? categories[demand.category] || demand.category : "General Request"}
+**Department:** ${demand.department || "City Hall"}
+**Submitted:** ${new Date(demand.submittedAt).toLocaleString()}
+
+**Description:**
+${demand.description}
+
+**Location:**
+${demand.location || "Not specified"}
+
+**Contact Information:**
+${demand.anonymous ? "Anonymous submission" : `Name: ${demand.contactName || "Not provided"}\nEmail: ${demand.contactEmail || "Not provided"}\nPhone: ${demand.contactPhone || "Not provided"}`}
+
+**Urgency:** ${demand.urgency.charAt(0).toUpperCase() + demand.urgency.slice(1)}
+
+[View Request Details](https://sp156.prefeitura.sp.gov.br/requests/${query})
+`)
+                setIsOutOfScope(false)
+                setIsLoading(false)
+                return // Skip the regular search
+            }
+        }
 
         // Interpretar a consulta do usuário
         const interpreted = await interpretQuery(query)
@@ -739,6 +818,13 @@ export default function PrefeituraDigital() {
         }
     }
 
+    // Add a function to handle demand submission
+    // Add this with the other handler functions
+    const handleDemandSubmit = (demandData: any) => {
+        console.log("Demand submitted:", demandData)
+        setSubmittedDemands((prev) => [demandData, ...prev])
+    }
+
     // Modificar o JSX de retorno para implementar a expansão/contração
     return (
         <div
@@ -939,6 +1025,21 @@ export default function PrefeituraDigital() {
                         </div>
                     </div>
                 )}
+
+                {/* Add the DemandMaker component right after the image analysis section and before the query interpretation section */}
+                {isExpanded && (results || imageAnalysis) && !isLoading && !isSiteLoading && !isInterpreting && (
+                    <DemandMaker
+                        query={query}
+                        imageAnalysis={imageAnalysis}
+                        searchResults={results}
+                        interpretedQuery={interpretedQuery}
+                        userLocation={userLocation}
+                        onSubmit={handleDemandSubmit}
+                        selectedImage={selectedImage} // Add this line
+                    />
+                )}
+
+                {isExpanded && submittedDemands.length > 0 && <DemandHistory demands={submittedDemands} />}
 
                 {/* Mostrar informações sobre a interpretação da consulta */}
                 {isExpanded &&
