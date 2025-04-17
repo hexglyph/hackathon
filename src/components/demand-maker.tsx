@@ -527,7 +527,7 @@ export default function DemandMaker({
                                                 <div className="mt-2 text-sm text-orange-700">
                                                     <p>
                                                         Your contact information will only be used to follow up on this specific request. You can
-                                                        choose to submit anonymously, but we won't be able to provide updates.
+                                                        choose to submit anonymously, but we won&apos;t be able to provide updates.
                                                     </p>
                                                 </div>
                                             </div>

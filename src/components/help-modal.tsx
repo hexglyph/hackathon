@@ -28,7 +28,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             </h3>
                             <p className="text-gray-700">
                                 Type your question in natural language to find information about São Paulo City Hall services. Example:
-                                "How do I request tree pruning?" or "I need a copy of my property tax bill".
+                                &quot;How do I request tree pruning?&quot; or &quot;I need a copy of my property tax bill&quot;.
                             </p>
                         </div>
 
@@ -61,7 +61,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                             </h3>
                             <p className="text-gray-700">
                                 Click on the speaker icon to hear the answer out loud, ideal for people with visual impairments or when
-                                you're on the move.
+                                you&apos;re on the move.
                             </p>
                         </div>
 
@@ -71,7 +71,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                                 Service Location
                             </h3>
                             <p className="text-gray-700">
-                                For questions about service locations (e.g., "Where is the nearest health center?"), the system can show
+                                For questions about service locations (e.g., &quot;Where is the nearest health center?&quot;), the system can show
                                 information about the closest locations.
                             </p>
                         </div>
@@ -91,8 +91,8 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                     <div className="mt-8 p-4 bg-orange-50 rounded-lg border border-orange-100">
                         <h3 className="font-semibold text-orange-700 mb-2">Tip</h3>
                         <p className="text-orange-700 text-sm">
-                            For best results, be specific in your question. For example, instead of just asking "Property tax", try
-                            "How do I get a copy of my property tax bill?" or "When is the 2024 property tax due?".
+                            For best results, be specific in your question. For example, instead of just asking &quot;Property tax&quot;, try
+                            &quot;How do I get a copy of my property tax bill?&quot; or &quot;When is the 2024 property tax due?&quot;.
                         </p>
                     </div>
                 </div>

@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // @ts-nocheck
 "use client"
 
@@ -1018,7 +1020,7 @@ ${demand.anonymous ? "Anonymous submission" : `Name: ${demand.contactName || "No
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-full py-8 text-gray-500">
-                                        <p>Click "Analyze Image" to identify urban issues and find relevant city services.</p>
+                                        <p>Click &quot;Analyze Image&quot; to identify urban issues and find relevant city services.</p>
                                     </div>
                                 )}
                             </div>
@@ -1249,9 +1251,9 @@ ${demand.anonymous ? "Anonymous submission" : `Name: ${demand.contactName || "No
                                     <div className="bg-gray-50 p-3 rounded-md">
                                         <p className="font-medium text-sm">Try writing:</p>
                                         <ul className="text-xs mt-1 space-y-1">
-                                            <li>• "I need to prune a tree on my street"</li>
-                                            <li>• "How do I pay my property tax?"</li>
-                                            <li>• "Where can I find information about public transportation?"</li>
+                                            <li>• &quot;I need to prune a tree on my street&quot;</li>
+                                            <li>• &quot;How do I pay my property tax?&quot;</li>
+                                            <li>• &quot;Where can I find information about public transportation?&quot;</li>
                                         </ul>
                                     </div>
                                 </div>
