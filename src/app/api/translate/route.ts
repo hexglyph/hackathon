@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
             model: models.translator,
             system: systemPrompt,
             prompt: text,
-            temperature: 0.3,
+            temperature: 0.7,
         })
 
         // Registrar informações de uso e cache

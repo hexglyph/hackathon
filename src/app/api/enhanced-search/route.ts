@@ -8,83 +8,76 @@ const azureOpenAI = new AzureOpenAI({
     apiVersion: "2024-12-01-preview",
 })
 
-// API de busca que usa o vector store como fonte primária de dados
 export async function POST(request: NextRequest) {
     try {
         const { query, language = "pt" } = await request.json()
-        const sanitizedQuery = query.trim()
 
-        if (!sanitizedQuery) {
+        if (!query || typeof query !== "string") {
             return NextResponse.json({
                 result: "Por favor, forneça um termo de busca válido.",
                 isOutOfScope: true,
             })
         }
 
-        // Consultar o vector store
-        try {
-            // Preparar a consulta para o modelo
-            const enhancedPrompt = `
-        Busca original: "${sanitizedQuery}"
-        
-        Por favor, encontre serviços da Prefeitura de São Paulo relacionados a esta busca.
-        Considere possíveis erros de digitação, variações de escrita e sinônimos.
-      `
+        const sanitizedQuery = query.trim()
 
-            // Consultar o vector store usando a API do Azure OpenAI
-            const vectorStoreResult = await queryVectorStore(enhancedPrompt)
+        // Preparar a consulta para o modelo com melhorias para lidar com variações de escrita
+        const enhancedPrompt = `
+      Busca original: "${sanitizedQuery}"
+      
+      Por favor, encontre serviços da Prefeitura de São Paulo relacionados a esta busca.
+      Considere possíveis erros de digitação, variações de escrita e sinônimos.
+      
+      Exemplos de variações a considerar:
+      - "catabagulho" / "cata bagulho" / "cata-bagulho"
+      - "tapa buraco" / "tapaburaco" / "tapa-buraco"
+      - "poda de árvore" / "poda arvore" / "podar árvore"
+      
+      Se a consulta for sobre ecopontos, inclua o endereço completo, telefone e horário de funcionamento.
+    `
 
-            if (vectorStoreResult) {
-                let markdownResponse = ""
+        // Consultar o vector store usando a API do Azure OpenAI
+        const vectorStoreResult = await queryVectorStore(enhancedPrompt)
 
-                // Verificar se temos serviços ou ecopontos
-                if (vectorStoreResult.servicos && vectorStoreResult.servicos.length > 0) {
-                    markdownResponse = vectorStoreResult.servicos.map(formatServiceToMarkdown).join("\n\n---\n\n")
-                } else if (vectorStoreResult.ecopontos && vectorStoreResult.ecopontos.length > 0) {
-                    markdownResponse = vectorStoreResult.ecopontos.map(formatEcopontoToMarkdown).join("\n\n---\n\n")
+        if (vectorStoreResult) {
+            let markdownResponse = ""
 
-                    // Adicionar link para o mapa geral, se disponível
-                    if (vectorStoreResult.mapa) {
-                        const cleanMapaLink = vectorStoreResult.mapa.replace(/【.*?】/g, "").replace(/\s*source\s*/g, "")
-                        markdownResponse += `\n\n[**Ver todos os Ecopontos no mapa**](${cleanMapaLink})\n\n`
-                    }
-                }
+            // Verificar se temos serviços ou ecopontos
+            if (vectorStoreResult.servicos && vectorStoreResult.servicos.length > 0) {
+                markdownResponse = vectorStoreResult.servicos.map(formatServiceToMarkdown).join("\n\n---\n\n")
+            } else if (vectorStoreResult.ecopontos && vectorStoreResult.ecopontos.length > 0) {
+                markdownResponse = vectorStoreResult.ecopontos.map(formatEcopontoToMarkdown).join("\n\n---\n\n")
 
-                // Se o idioma não for português, traduzir os resultados
-                if (language !== "pt" && markdownResponse) {
-                    markdownResponse = await translateText(markdownResponse, language)
-                }
-
-                if (markdownResponse) {
-                    return NextResponse.json({
-                        result: markdownResponse,
-                        isOutOfScope: false,
-                        source: "vector_store",
-                    })
+                // Adicionar link para o mapa geral, se disponível
+                if (vectorStoreResult.mapa) {
+                    const cleanMapaLink = vectorStoreResult.mapa.replace(/【.*?】/g, "").replace(/\s*source\s*/g, "")
+                    markdownResponse += `\n\n[**Ver todos os Ecopontos no mapa**](${cleanMapaLink})\n\n`
                 }
             }
 
-            // Se chegamos aqui, não encontramos resultados em nenhuma fonte
-            // Gerar uma resposta amigável com sugestões
-            const noResultsResponse = await generateNoResultsResponse(sanitizedQuery, language)
+            // Se o idioma não for português, traduzir os resultados
+            if (language !== "pt" && markdownResponse) {
+                markdownResponse = await translateText(markdownResponse, language)
+            }
 
-            return NextResponse.json({
-                result: noResultsResponse,
-                isOutOfScope: true,
-                source: "fallback",
-            })
-        } catch (vectorStoreError) {
-            console.error("Erro ao consultar vector store:", vectorStoreError)
-
-            // Gerar uma resposta de fallback
-            const fallbackResponse = await generateFallbackResponse(sanitizedQuery, language)
-
-            return NextResponse.json({
-                result: fallbackResponse,
-                isOutOfScope: true,
-                source: "error_fallback",
-            })
+            if (markdownResponse) {
+                return NextResponse.json({
+                    result: markdownResponse,
+                    isOutOfScope: false,
+                    source: "vector_store",
+                })
+            }
         }
+
+        // Se chegamos aqui, não encontramos resultados
+        // Gerar uma resposta amigável com sugestões
+        const noResultsResponse = await generateNoResultsResponse(sanitizedQuery, language)
+
+        return NextResponse.json({
+            result: noResultsResponse,
+            isOutOfScope: true,
+            source: "fallback",
+        })
     } catch (error) {
         console.error("Erro ao processar busca:", error)
 
@@ -98,12 +91,11 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// Função para consultar o vector store (simplificada para o exemplo)
+// Função para consultar o vector store usando o assistente da Azure OpenAI
 async function queryVectorStore(query: string) {
     try {
-        // Implementação simplificada - na prática, você usaria o código completo do seu arquivo search/route.ts
         const options = {
-            model: "4o-mini",
+            model: "o3-mini",
             name: "PortalPrefeitura",
             instructions: `Você é um assistente especializado em encontrar serviços da Prefeitura de São Paulo.
       Retorne os dados completos dos serviços relevantes em formato JSON, incluindo nome, descrição, resumo, link e outros campos disponíveis.
@@ -215,7 +207,7 @@ async function translateText(text: string, targetLanguage: string): Promise<stri
 
         // Usar o Azure OpenAI para traduzir o texto
         const translationResponse = await azureOpenAI.chat.completions.create({
-            model: "4o-mini",
+            model: "o3-mini",
             messages: [
                 {
                     role: "system",
@@ -226,8 +218,8 @@ async function translateText(text: string, targetLanguage: string): Promise<stri
                     content: text,
                 },
             ],
-            temperature: 0.3,
-            max_tokens: 2000,
+            reasoning_effort: "low",
+            store: true,
         })
 
         return translationResponse.choices[0].message.content || text
@@ -253,7 +245,7 @@ async function generateNoResultsResponse(query: string, language: string): Promi
     `
 
         const response = await azureOpenAI.chat.completions.create({
-            model: "4o-mini",
+            model: "o3-mini",
             messages: [
                 {
                     role: "system",
@@ -265,8 +257,8 @@ async function generateNoResultsResponse(query: string, language: string): Promi
                     content: prompt,
                 },
             ],
-            temperature: 0.7,
-            max_tokens: 500,
+            reasoning_effort: "low",
+            store: true,
         })
 
         let result =
@@ -282,24 +274,6 @@ async function generateNoResultsResponse(query: string, language: string): Promi
     } catch (error) {
         console.error("Erro ao gerar resposta para busca sem resultados:", error)
         return "Não encontramos um serviço específico para sua consulta. Para mais informações, acesse o portal da Prefeitura: https://capital.sp.gov.br/ ou ligue para o SP156."
-    }
-}
-
-// Função para gerar resposta de fallback em caso de erro
-async function generateFallbackResponse(query: string, language: string): Promise<string> {
-    const defaultResponse =
-        "Desculpe, estamos enfrentando dificuldades técnicas para processar sua busca. Por favor, tente novamente mais tarde ou entre em contato com o SP156 pelo telefone 156 ou pelo site https://sp156.prefeitura.sp.gov.br/"
-
-    try {
-        // Traduzir a resposta padrão se necessário
-        if (language !== "pt") {
-            return await translateText(defaultResponse, language)
-        }
-
-        return defaultResponse
-    } catch (error) {
-        console.error("Erro ao gerar resposta de fallback:", error)
-        return defaultResponse
     }
 }
 

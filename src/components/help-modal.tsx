@@ -13,7 +13,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-lg shadow-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white">
-                    <h2 className="text-xl font-bold text-secondary">Prefeitura IA - Features</h2>
+                    <h2 className="text-xl font-bold text-secondary">Portal IA - Features</h2>
                     <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100" aria-label="Fechar">
                         <X className="w-5 h-5" />
                     </button>

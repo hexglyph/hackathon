@@ -20,12 +20,14 @@ import {
     ThumbsUp,
     ThumbsDown,
     MapPin,
+    HelpCircle
 } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 // Corrigir o caminho de importação
 import LocationMap from "@/features/location-map"
 import { speechToText, textToSpeech } from "@/lib/speech-service"
+import HelpModal from "@/components/help-modal"
 
 export default function PrefeituraDigital() {
     // Adicionar o estilo ao documento
@@ -61,6 +63,7 @@ export default function PrefeituraDigital() {
         distance?: string
     } | null>(null)
     const [isLocationQuery, setIsLocationQuery] = useState(false)
+    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false)
 
     // Novos estados para a interpretação da consulta
     const [isInterpreting, setIsInterpreting] = useState(false)
@@ -259,7 +262,13 @@ export default function PrefeituraDigital() {
         const siteSearchQuery =
             interpreted.keywords.length > 0 ? interpreted.keywords.slice(0, 3).join(" ") : interpreted.interpretedQuery
 
-        searchSite(siteSearchQuery)
+        if (interpreted.language !== "pt") {
+            translateQueryToPortuguese(siteSearchQuery).then((translatedQuery) => {
+                searchSite(translatedQuery)
+            })
+        } else {
+            searchSite(siteSearchQuery)
+        }
     }
 
     const searchVectorStore = async (processedQuery: string, detectedLanguage = "pt") => {
@@ -355,6 +364,32 @@ export default function PrefeituraDigital() {
             ])
         } finally {
             setIsSiteLoading(false)
+        }
+    }
+
+    const translateQueryToPortuguese = async (query: string): Promise<string> => {
+        try {
+            const response = await fetch("/api/translate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    text: query,
+                    targetLanguage: "pt", // Traduzir para português
+                }),
+            })
+
+            if (!response.ok) {
+                throw new Error("Erro ao traduzir consulta")
+            }
+
+            const data = await response.json()
+            console.log("Consulta traduzida para português:", data.translatedText)
+            return data.translatedText || query // Retornar o texto traduzido ou o original em caso de falha
+        } catch (err) {
+            console.error("Erro ao traduzir consulta:", err)
+            return query // Em caso de erro, retornar a consulta original
         }
     }
 
@@ -656,17 +691,28 @@ export default function PrefeituraDigital() {
                 className={`text-white transition-all duration-300 ${isExpanded ? "py-6 px-6 bg-secondary" : "py-3 px-4 flex justify-center"
                     }`}
             >
-                <h2
-                    className={`font-bold transition-all duration-300 ${isExpanded ? "text-2xl md:text-3xl" : "text-lg md:text-xl"
-                        }`}
-                >
-                    Prefeitura IA
-                </h2>
+                <div className="flex items-center gap-2">
+                    <h2
+                        className={`font-bold transition-all duration-300 ${isExpanded ? "text-2xl md:text-3xl" : "text-lg md:text-xl"
+                            }`}
+                    >
+                        Portal IA
+                    </h2>
+                    <button
+                        onClick={() => setIsHelpModalOpen(true)}
+                        className="p-1 rounded-full bg-white/30 hover:bg-white/50 text-white transition-colors"
+                        aria-label="Informações sobre o Portal IA"
+                    >
+                        <HelpCircle className="w-5 h-5" />
+                    </button>
+                </div>
                 {isExpanded && (
                     <p className="text-lg transition-opacity duration-300 opacity-100">
                         Encontre rapidamente os serviços da Prefeitura de São Paulo.
                     </p>
                 )}
+
+                <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
             </div>
 
             <div className={`transition-all duration-300 ${isExpanded ? "p-6 border-b border-r border-l border-secondary rounded-b-md shadow-lg shadow-secondary" : "px-4 py-3"}`}>

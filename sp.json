@@ -1,8 +1,5 @@
 [
   {
-  "Servicos e Programa da Prefeitura e Secretarias": 
-  [
-  {
     "id": 1,
     "nome": "Operação Cata Bagulho",
     "descricao": "O serviço é realizado em regiões específicas em datas programadas (uma vez por mês), permitindo que os munícipes separem os objetos e materiais que desejam descartar, reduzindo a quantidade de resíduos acumulados nas ruas e nas áreas públicas.",
@@ -137,7 +134,5 @@
     "keywords": "",
     "osanonimo": "",
     "oslogado": ""
-  }
-]
   }
 ]

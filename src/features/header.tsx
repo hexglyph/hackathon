@@ -176,14 +176,6 @@ export default function Header() {
                         <Link href="/noticias" className="font-medium">
                             Notícias
                         </Link>
-
-                        <button
-                            onClick={() => setIsHelpModalOpen(true)}
-                            className="ml-4 p-2 rounded-full bg-background hover:bg-orange-200 text-secondary transition-colors"
-                            aria-label="Ajuda sobre Prefeitura IA"
-                        >
-                            <HelpCircle className="w-5 h-5" />
-                        </button>
                     </nav>
                 </div>
             </div>
